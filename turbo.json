@@ -1,11 +1,19 @@
 {
   "$schema": "https://turbo.build/schema.json",
   "ui": "tui",
+  "globalDependencies": ["**/.env*"],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
-      "outputs": ["dist/**"]
+      "outputs": ["dist/**", ".next/**", "!.next/cache/**"],
+      "env": ["CLERK_SECRET_KEY", "CONVEX_DEPLOYMENT", "CONVEX_URL"]
+    },
+    "web#build": {
+      "dependsOn": ["@yellow/ui#build", "^build"]
+    },
+    "landing-page#build": {
+      "dependsOn": ["@yellow/ui#build", "^build"]
     },
     "lint": {
       "dependsOn": ["^lint"]

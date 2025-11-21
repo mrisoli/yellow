@@ -1,15 +1,19 @@
 {
   "version": 2,
-  "buildCommand": "bun run build",
-  "outputDirectory": "apps/landing-page/.next",
   "builds": [
     {
       "src": "apps/web/package.json",
-      "use": "@vercel/next"
+      "use": "@vercel/next",
+      "config": {
+        "buildCommand": "cd ../.. && bun run build"
+      }
     },
     {
       "src": "apps/landing-page/package.json",
-      "use": "@vercel/next"
+      "use": "@vercel/next",
+      "config": {
+        "buildCommand": "cd ../.. && bun run build"
+      }
     }
   ],
   "routes": [

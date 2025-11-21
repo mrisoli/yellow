@@ -17,19 +17,13 @@
         "@clerk/nextjs": "^6.35.4",
         "@tanstack/react-form": "^1.25.0",
         "@yellow/backend": "workspace:*",
-        "babel-plugin-react-compiler": "catalog:",
-        "class-variance-authority": "^0.7.1",
-        "clsx": "^2.1.1",
+        "@yellow/ui": "workspace:*",
         "convex": "catalog:",
         "lucide-react": "^0.554.0",
         "next": "16.0.0",
         "next-themes": "^0.4.6",
-        "radix-ui": "catalog:",
         "react": "catalog:",
         "react-dom": "catalog:",
-        "sonner": "^2.0.7",
-        "tailwind-merge": "^3.4.0",
-        "tw-animate-css": "^1.4.0",
         "zod": "catalog:",
       },
       "devDependencies": {
@@ -55,6 +49,30 @@
     "packages/config": {
       "name": "@yellow/config",
       "version": "0.0.0",
+    },
+    "packages/ui": {
+      "name": "@yellow/ui",
+      "version": "0.0.0",
+      "dependencies": {
+        "class-variance-authority": "^0.7.1",
+        "clsx": "^2.1.1",
+        "lucide-react": "^0.554.0",
+        "next-themes": "^0.4.6",
+        "radix-ui": "catalog:",
+        "react": "catalog:",
+        "react-dom": "catalog:",
+        "sonner": "^2.0.7",
+        "tailwind-merge": "^3.4.0",
+      },
+      "devDependencies": {
+        "@types/react": "catalog:",
+        "@types/react-dom": "catalog:",
+        "typescript": "catalog:",
+      },
+      "peerDependencies": {
+        "react": "catalog:",
+        "react-dom": "catalog:",
+      },
     },
   },
   "catalog": {
@@ -433,6 +451,8 @@
 
     "@yellow/config": ["@yellow/config@workspace:packages/config"],
 
+    "@yellow/ui": ["@yellow/ui@workspace:packages/ui"],
+
     "ansi-regex": ["ansi-regex@6.2.2", "", {}, "sha512-Bq3SmSpyFHaWjPk8If9yc6svM8c56dB5BAtW4Qbw5jHTwwXXcTLoRMkpDJp6VL0XzlWaCHTXrkFURMYmD0sLqg=="],
 
     "ansi-styles": ["ansi-styles@6.2.3", "", {}, "sha512-4Dj6M28JB+oAH8kFkTLUo+a2jwOFkuqb3yucU0CANcRRUbxS0cP0nZYCGjcc3BNXwRIsUVmDGgzawme7zvJHvg=="],
@@ -642,8 +662,6 @@
     "turbo-windows-64": ["turbo-windows-64@2.6.1", "", { "os": "win32", "cpu": "x64" }, "sha512-buq7/VAN7KOjMYi4tSZT5m+jpqyhbRU2EUTTvp6V0Ii8dAkY2tAAjQN1q5q2ByflYWKecbQNTqxmVploE0LVwQ=="],
 
     "turbo-windows-arm64": ["turbo-windows-arm64@2.6.1", "", { "os": "win32", "cpu": "arm64" }, "sha512-7w+AD5vJp3R+FB0YOj1YJcNcOOvBior7bcHTodqp90S3x3bLgpr7tE6xOea1e8JkP7GK6ciKVUpQvV7psiwU5Q=="],
-
-    "tw-animate-css": ["tw-animate-css@1.4.0", "", {}, "sha512-7bziOlRqH0hJx80h/3mbicLW7o8qLsH5+RaLR2t+OHM3D0JlWGODQKQ4cxbK7WlvmUxpcj6Kgu6EKqjrGFe3QQ=="],
 
     "typescript": ["typescript@5.9.3", "", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw=="],
 

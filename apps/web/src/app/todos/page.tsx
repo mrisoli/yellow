@@ -2,19 +2,19 @@
 
 import { api } from "@yellow/backend/convex/_generated/api";
 import type { Id } from "@yellow/backend/convex/_generated/dataModel";
-import { useMutation, useQuery } from "convex/react";
-import { Loader2, Trash2 } from "lucide-react";
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
 import {
+  Button,
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
+  Checkbox,
+  Input,
+} from "@yellow/ui";
+import { useMutation, useQuery } from "convex/react";
+import { Loader2, Trash2 } from "lucide-react";
+import { useState } from "react";
 
 export default function TodosPage() {
   const [newTodoText, setNewTodoText] = useState("");

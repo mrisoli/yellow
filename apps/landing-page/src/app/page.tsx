@@ -1,4 +1,4 @@
-import { Button } from "@yellow/ui";
+import { AppLinkButton } from "@/components/app-link-button";
 
 export default function Home() {
   return (
@@ -8,9 +8,7 @@ export default function Home() {
         <p className="mb-8 text-lg text-muted-foreground">
           Modern task management for teams
         </p>
-        <Button asChild size="lg">
-          <a href="https://app.localhost:3001">Go to App</a>
-        </Button>
+        <AppLinkButton />
       </div>
     </div>
   );

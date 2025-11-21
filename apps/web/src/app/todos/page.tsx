@@ -27,7 +27,9 @@ export default function TodosPage() {
   const handleAddTodo = async (e: React.FormEvent) => {
     e.preventDefault();
     const text = newTodoText.trim();
-    if (!text) return;
+    if (!text) {
+      return;
+    }
     await createTodoMutation({ text });
     setNewTodoText("");
   };
@@ -62,13 +64,15 @@ export default function TodosPage() {
             </Button>
           </form>
 
-          {todos === undefined ? (
+          {todos === undefined && (
             <div className="flex justify-center py-4">
               <Loader2 className="h-6 w-6 animate-spin" />
             </div>
-          ) : todos.length === 0 ? (
+          )}
+          {todos !== undefined && todos.length === 0 && (
             <p className="py-4 text-center">No todos yet. Add one above!</p>
-          ) : (
+          )}
+          {todos !== undefined && todos.length > 0 && (
             <ul className="space-y-2">
               {todos.map((todo) => (
                 <li

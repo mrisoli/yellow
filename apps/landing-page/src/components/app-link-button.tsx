@@ -1,5 +1,3 @@
-"use client";
-
 import { Button } from "@yellow/ui";
 import { getAppUrl } from "@/lib/get-app-url";
 

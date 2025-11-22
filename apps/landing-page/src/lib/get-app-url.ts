@@ -4,13 +4,18 @@ export function getAppUrl(): string {
     return process.env.NEXT_PUBLIC_APP_URL;
   }
 
-  // Production fallback - construct from current domain
+  // Use Vercel's built-in URL during build time
+  if (process.env.VERCEL_URL) {
+    return `https://app.${process.env.VERCEL_URL}`;
+  }
+
+  // Browser fallback - construct from current domain
   if (typeof window !== "undefined") {
     const host = window.location.host;
     const protocol = window.location.protocol;
     return `${protocol}//app.${host}`;
   }
 
-  // Server-side production fallback
-  return "https://app.example.com";
+  // Development fallback
+  return "http://localhost:3001";
 }

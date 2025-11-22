@@ -1,21 +1,24 @@
 export function getAppUrl(): string {
-  // Use environment variable (NEXT_PUBLIC_APP_URL)
-  if (process.env.NEXT_PUBLIC_APP_URL) {
-    return process.env.NEXT_PUBLIC_APP_URL;
+  const isDevelopment = process.env.NODE_ENV === "development";
+
+  // Development mode
+  if (isDevelopment) {
+    if (process.env.NEXT_PUBLIC_APP_URL) {
+      return `http://${process.env.NEXT_PUBLIC_APP_URL}`;
+    }
+    return "http://localhost:3001";
   }
 
-  // Use Vercel's built-in URL during build time
+  // Production mode
+  if (process.env.NEXT_PUBLIC_APP_URL) {
+    return `https://app.${process.env.NEXT_PUBLIC_APP_URL}`;
+  }
+
+  // Vercel production fallback
   if (process.env.VERCEL_URL) {
     return `https://app.${process.env.VERCEL_URL}`;
   }
 
-  // Browser fallback - construct from current domain
-  if (typeof window !== "undefined") {
-    const host = window.location.host;
-    const protocol = window.location.protocol;
-    return `${protocol}//app.${host}`;
-  }
-
-  // Development fallback
-  return "http://localhost:3001";
+  // Final fallback
+  return "https://app.example.com";
 }

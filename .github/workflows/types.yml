@@ -1,13 +1,14 @@
 name: Type Check
 
 on:
-  push:
-    branches: [main, develop]
-  pull_request:
+  workflow_run:
+    workflows: [Lint & Format Check]
+    types: [completed]
     branches: [main, develop]
 
 jobs:
   types:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

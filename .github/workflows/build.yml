@@ -1,13 +1,14 @@
 name: Build
 
 on:
-  push:
-    branches: [main, develop]
-  pull_request:
+  workflow_run:
+    workflows: [Type Check]
+    types: [completed]
     branches: [main, develop]
 
 jobs:
   build:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     env:
       CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}

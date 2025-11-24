@@ -26,7 +26,7 @@ jobs:
         run: bun run build
 
       - name: Install Playwright Browsers
-        run: bun exec playwright install --with-deps
+        run: bunx playwright install --with-deps
 
       - name: Run Playwright tests
         run: bun run test:e2e

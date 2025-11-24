@@ -9,6 +9,10 @@
     ],
     "catalog": {
       "babel-plugin-react-compiler": "^1.0.0",
+      "@happy-dom/global-registrator": "^14.1.0",
+      "@testing-library/dom": "^10.4.0",
+      "@testing-library/jest-dom": "^6.6.0",
+      "@testing-library/react": "^16.1.0",
       "@types/node": "^20",
       "@types/react": "19.2.2",
       "@types/react-dom": "19.2.2",
@@ -39,6 +43,10 @@
   "dependencies": {},
   "devDependencies": {
     "@biomejs/biome": "2.3.6",
+    "@happy-dom/global-registrator": "catalog:",
+    "@testing-library/dom": "catalog:",
+    "@testing-library/jest-dom": "catalog:",
+    "@testing-library/react": "catalog:",
     "@types/bun": "latest",
     "turbo": "^2.6.1",
     "ultracite": "6.3.4"

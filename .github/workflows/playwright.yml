@@ -45,3 +45,15 @@ jobs:
           name: blob-report
           path: blob-report
           retention-days: 1
+
+      - name: Notify Vercel
+        uses: vercel/repository-dispatch/actions/status@v1
+        if: success()
+        with:
+          name: Vercel - yellow-web: playwright tests
+
+      - name: Notify Vercel
+        uses: vercel/repository-dispatch/actions/status@v1
+        if: success()
+        with:
+          name: Vercel - yellow-landing-page: playwright tests

@@ -26,6 +26,10 @@
     "dev": "turbo dev",
     "build": "turbo build",
     "check-types": "turbo check-types",
+    "test": "turbo test",
+    "test:ui": "bun test packages/ui",
+    "test:web": "bun test apps/web",
+    "test:landing-page": "bun test apps/landing-page",
     "dev:native": "turbo -F native dev",
     "dev:web": "turbo -F web dev",
     "dev:server": "turbo -F @yellow/backend dev",
@@ -35,6 +39,7 @@
   "dependencies": {},
   "devDependencies": {
     "@biomejs/biome": "2.3.6",
+    "@types/bun": "latest",
     "turbo": "^2.6.1",
     "ultracite": "6.3.4"
   },

@@ -1,0 +1,47 @@
+name: Unit Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test-ui:
+    name: Test @yellow/ui
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v1
+      - run: bun install
+      - run: bun test --coverage-reporter=lcov --coverage-dir=packages/ui/coverage packages/ui
+      - name: Upload coverage reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-ui
+          path: packages/ui/coverage/
+      - name: Publish coverage to PR
+        if: github.event_name == 'pull_request' && always()
+        uses: rometools/coverage-report-action@v1
+        with:
+          lcov-file: ./packages/ui/coverage/lcov.info
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+  test-web:
+    name: Test web app
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v1
+      - run: bun install
+      - run: bun run test:web
+
+  test-landing-page:
+    name: Test landing-page app
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v1
+      - run: bun install
+      - run: bun run test:landing-page

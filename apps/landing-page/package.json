@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "next dev --port=3000",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "test": "bun test"
   },
   "dependencies": {
     "@tanstack/react-form": "^1.25.0",

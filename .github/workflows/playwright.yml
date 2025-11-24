@@ -49,9 +49,9 @@ jobs:
       - name: Notify Vercel
         uses: vercel/repository-dispatch/actions/status@v1
         with:
-          name: Vercel - yellow-web: tests
+          name: 'Vercel - yellow-web: tests'
 
       - name: Notify Vercel
         uses: vercel/repository-dispatch/actions/status@v1
         with:
-          name: Vercel - yellow-landing-page: tests
+          name: 'Vercel - yellow-landing-page: tests'

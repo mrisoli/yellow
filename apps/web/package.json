@@ -6,7 +6,9 @@
     "dev": "next dev --port=3001",
     "build": "next build",
     "start": "next start",
-    "test": "bun test"
+    "test": "bun test",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui"
   },
   "dependencies": {
     "@clerk/nextjs": "^6.35.4",
@@ -23,6 +25,7 @@
   },
   "devDependencies": {
     "@happy-dom/global-registrator": "catalog:",
+    "@playwright/test": "catalog:",
     "@tailwindcss/postcss": "^4.1.17",
     "@testing-library/dom": "catalog:",
     "@testing-library/jest-dom": "catalog:",

@@ -8,6 +8,7 @@
       "packages/*"
     ],
     "catalog": {
+      "@playwright/test": "^1.48.2",
       "babel-plugin-react-compiler": "^1.0.0",
       "@happy-dom/global-registrator": "^14.1.0",
       "@testing-library/dom": "^10.4.0",
@@ -34,6 +35,8 @@
     "test:ui": "bun test packages/ui",
     "test:web": "bun test apps/web",
     "test:landing-page": "bun test apps/landing-page",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
     "dev:native": "turbo -F native dev",
     "dev:web": "turbo -F web dev",
     "dev:server": "turbo -F @yellow/backend dev",
@@ -44,6 +47,7 @@
   "devDependencies": {
     "@biomejs/biome": "2.3.6",
     "@happy-dom/global-registrator": "catalog:",
+    "@playwright/test": "catalog:",
     "@testing-library/dom": "catalog:",
     "@testing-library/jest-dom": "catalog:",
     "@testing-library/react": "catalog:",

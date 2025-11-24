@@ -2,6 +2,8 @@ import { describe, expect, it } from "bun:test";
 import { render, screen } from "@testing-library/react";
 import Home from "@/app/page";
 
+const DESCRIPTION_TEXT_PATTERN = /Modern task management for teams/;
+
 describe("Landing Page Root", () => {
   it("should render the home page", () => {
     render(<Home />);
@@ -16,6 +18,6 @@ describe("Landing Page Root", () => {
 
   it("should display description text", () => {
     render(<Home />);
-    expect(screen.getByText(/Modern task management for teams/)).toBeTruthy();
+    expect(screen.getByText(DESCRIPTION_TEXT_PATTERN)).toBeTruthy();
   });
 });

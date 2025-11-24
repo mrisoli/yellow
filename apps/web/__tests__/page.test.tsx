@@ -3,17 +3,29 @@ import { render, screen } from "@testing-library/react";
 import { ConvexProvider } from "convex/react";
 import Home from "@/app/page";
 
+const API_STATUS_PATTERN = /API Status/;
+const CHECKING_STATUS_PATTERN = /Checking/;
+
 // Create a mock Convex client for testing
 const mockConvexClient = {
   watchQuery: () => ({
-    localQueryResult: () => {}, // Simulate loading state
+    localQueryResult: () => {
+      // Simulate loading state
+      return;
+    },
     onUpdate: (callback: () => void) => {
       callback();
-      return () => {}; // Return unsubscribe function
+      return () => {
+        // Unsubscribe function (intentionally empty)
+        return;
+      };
     },
     subscribe: (callback: (value: unknown) => void) => {
       callback(undefined); // Simulate undefined (loading) state
-      return () => {}; // Return unsubscribe function
+      return () => {
+        // Unsubscribe function (intentionally empty)
+        return;
+      };
     },
   }),
 };
@@ -31,7 +43,7 @@ describe("Web App Root", () => {
         <Home />
       </MockConvexWrapper>
     );
-    expect(screen.getByText(/API Status/)).toBeTruthy();
+    expect(screen.getByText(API_STATUS_PATTERN)).toBeTruthy();
   });
 
   it("should display checking status text", () => {
@@ -40,6 +52,6 @@ describe("Web App Root", () => {
         <Home />
       </MockConvexWrapper>
     );
-    expect(screen.getByText(/Checking/)).toBeTruthy();
+    expect(screen.getByText(CHECKING_STATUS_PATTERN)).toBeTruthy();
   });
 });

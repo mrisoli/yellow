@@ -13,6 +13,7 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+// Note: Metadata must be static in Next.js. These values are kept in sync with i18n messages.metadata
 export const metadata: Metadata = {
   title: "yellow",
   description: "Modern task management for teams",

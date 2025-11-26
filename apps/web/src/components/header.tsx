@@ -1,11 +1,12 @@
 "use client";
+import { navigation } from "@yellow/i18n/messages";
 import Link from "next/link";
 import { ModeToggle } from "./mode-toggle";
 
 export default function Header() {
   const links = [
-    { to: "/", label: "Home" },
-    { to: "/dashboard", label: "Dashboard" },
+    { to: "/", label: navigation.home() },
+    { to: "/dashboard", label: navigation.dashboard() },
   ] as const;
 
   return (

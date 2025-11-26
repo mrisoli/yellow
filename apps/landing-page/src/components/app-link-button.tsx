@@ -1,4 +1,4 @@
-import * as m from "@yellow/i18n/messages";
+import { landing } from "@yellow/i18n/messages";
 import { Button } from "@yellow/ui";
 import { getAppUrl } from "@/lib/get-app-url";
 
@@ -7,7 +7,7 @@ export function AppLinkButton() {
 
   return (
     <Button asChild size="lg">
-      <a href={appUrl}>{m.landing.goToApp()}</a>
+      <a href={appUrl}>{landing.goToApp()}</a>
     </Button>
   );
 }

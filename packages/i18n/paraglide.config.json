@@ -1,0 +1,9 @@
+{
+  "$schema": "https://cdn.jsdelivr.net/gh/opral/monorepo@latest/inlang/config-schema/schema.json",
+  "sourceLanguageTag": "en",
+  "languageTags": ["en"],
+  "modules": ["@inlang/plugin-json"],
+  "plugin.inlang.json": {
+    "pathPattern": "./messages/{language}.json"
+  }
+}

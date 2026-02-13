@@ -1,29 +1,43 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, mock, test } from "bun:test";
 import { Route } from "../routes/index";
 
 // Mock the dependencies
-vi.mock("@tanstack/react-query", () => ({
-	useQuery: vi.fn(() => ({
-		data: "OK",
-		isLoading: false,
-	})),
+const mockUseQuery = mock(() => ({
+	data: "OK",
+	isLoading: false,
 }));
 
-vi.mock("@convex-dev/react-query", () => ({
-	convexQuery: vi.fn(() => ({})),
-}));
+const mockConvexQuery = mock(() => ({}));
 
-vi.mock("@yellow/backend/convex/_generated/api", () => ({
-	api: {
-		healthCheck: {
-			get: vi.fn(),
-		},
+const mockApi = {
+	healthCheck: {
+		get: mock(() => {}),
 	},
+};
+
+beforeEach(() => {
+	// Reset mocks before each test
+	mockUseQuery.mockClear();
+	mockConvexQuery.mockClear();
+	mockApi.healthCheck.get.mockClear();
+});
+
+// Set up module mocks
+mock.module("@tanstack/react-query", () => ({
+	useQuery: mockUseQuery,
+}));
+
+mock.module("@convex-dev/react-query", () => ({
+	convexQuery: mockConvexQuery,
+}));
+
+mock.module("@yellow/backend/convex/_generated/api", () => ({
+	api: mockApi,
 }));
 
 describe("HomeComponent", () => {
-	it("renders the title text", () => {
+	test("renders the title text", () => {
 		const Component = Route.options.component;
 		if (!Component) {
 			throw new Error("Component not found");
@@ -32,7 +46,7 @@ describe("HomeComponent", () => {
 		expect(screen.getByText(/BETTER/)).toBeDefined();
 	});
 
-	it("shows API status section", () => {
+	test("shows API status section", () => {
 		const Component = Route.options.component;
 		if (!Component) {
 			throw new Error("Component not found");

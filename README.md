@@ -12,7 +12,7 @@ This project was created with [Better-T-Stack](https://github.com/AmanVarshney01
 - **Authentication** - Better-Auth
 - **Biome** - Linting and formatting
 - **Turborepo** - Optimized monorepo build system
-- **Testing** - React Testing Library, Vitest, and Playwright
+- **Testing** - React Testing Library, Bun test, and Playwright
 
 ## Getting Started
 
@@ -64,7 +64,7 @@ This project includes a comprehensive test suite with unit and end-to-end tests.
 
 ### Unit Tests
 
-Unit tests are powered by Vitest and React Testing Library. They test individual components and functions in isolation.
+Unit tests are powered by Bun's built-in test runner and React Testing Library. They test individual components and functions in isolation.
 
 ```bash
 # Run all unit tests

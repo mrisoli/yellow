@@ -9,6 +9,7 @@
     "test:headed": "playwright test --headed"
   },
   "devDependencies": {
+    "@happy-dom/global-registrator": "catalog:",
     "@playwright/test": "^1.51.0"
   }
 }

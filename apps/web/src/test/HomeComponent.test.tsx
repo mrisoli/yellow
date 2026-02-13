@@ -1,5 +1,5 @@
-import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, mock, test } from "bun:test";
+import { render, screen } from "@testing-library/react";
 import { Route } from "../routes/index";
 
 // Mock the dependencies
@@ -42,8 +42,10 @@ describe("HomeComponent", () => {
 		if (!Component) {
 			throw new Error("Component not found");
 		}
-		render(<Component />);
-		expect(screen.getByText(/BETTER/)).toBeDefined();
+		const { container } = render(<Component />);
+		const pre = container.querySelector("pre");
+		expect(pre).toBeDefined();
+		expect(pre?.textContent).toContain("██");
 	});
 
 	test("shows API status section", () => {

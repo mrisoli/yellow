@@ -1,8 +1,8 @@
 import tailwindcss from "@tailwindcss/vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import viteReact from "@vitejs/plugin-react";
+import { nitro } from "nitro/vite";
 import { defineConfig } from "vite";
-import vercel from "vite-plugin-vercel";
 import tsconfigPaths from "vite-tsconfig-paths";
 
 export default defineConfig({
@@ -11,7 +11,7 @@ export default defineConfig({
 		tailwindcss(),
 		tanstackStart(),
 		viteReact(),
-		vercel(),
+		nitro(),
 	],
 	server: {
 		port: (process.env.PORT as unknown as number) ?? 3001,

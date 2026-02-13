@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, mock, test } from "bun:test";
+import { describe, expect, mock, test } from "bun:test";
 import { render, screen } from "@testing-library/react";
 import { Route } from "../routes/index";
 
@@ -15,13 +15,6 @@ const mockApi = {
 		get: mock(() => {}),
 	},
 };
-
-beforeEach(() => {
-	// Reset mocks before each test
-	mockUseQuery.mockClear();
-	mockConvexQuery.mockClear();
-	mockApi.healthCheck.get.mockClear();
-});
 
 // Set up module mocks
 mock.module("@tanstack/react-query", () => ({

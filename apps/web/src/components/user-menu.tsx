@@ -1,5 +1,5 @@
 import { api } from "@yellow/backend/convex/_generated/api";
-import { useQuery } from "convex/react";
+import { Button } from "@yellow/ui/button";
 
 import {
 	DropdownMenu,
@@ -9,10 +9,9 @@ import {
 	DropdownMenuLabel,
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from "@yellow/ui/dropdown-menu";
+import { useQuery } from "convex/react";
 import { authClient } from "@/lib/auth-client";
-
-import { Button } from "./ui/button";
 
 export default function UserMenu() {
 	const user = useQuery(api.auth.getCurrentUser);

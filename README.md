@@ -12,6 +12,7 @@ This project was created with [Better-T-Stack](https://github.com/AmanVarshney01
 - **Authentication** - Better-Auth
 - **Biome** - Linting and formatting
 - **Turborepo** - Optimized monorepo build system
+- **Testing** - React Testing Library, Bun test, and Playwright
 
 ## Getting Started
 
@@ -54,12 +55,54 @@ yellow/
 │   ├── web/         # Frontend application (React + TanStack Start)
 ├── packages/
 │   ├── backend/     # Convex backend functions and schema
+│   ├── e2e/         # End-to-end tests with Playwright
+```
+
+## Testing
+
+This project includes a comprehensive test suite with unit and end-to-end tests.
+
+### Unit Tests
+
+Unit tests are powered by Bun's built-in test runner and React Testing Library. They test individual components and functions in isolation.
+
+```bash
+# Run all unit tests
+bun run test --filter=web
+
+# Run tests in watch mode (web app)
+cd apps/web && bun run test:watch
+```
+
+### End-to-End Tests
+
+E2E tests are powered by Playwright and test the application as a whole, simulating real user interactions.
+
+```bash
+# Install Playwright browsers (first time only)
+cd packages/e2e && bunx playwright install --with-deps chromium
+
+# Run E2E tests
+bun run test --filter=@yellow/e2e
+
+# Run E2E tests with UI
+cd packages/e2e && bun run test:ui
+
+# Run E2E tests in headed mode (visible browser)
+cd packages/e2e && bun run test:headed
+```
+
+### Run All Tests
+
+```bash
+bun run test
 ```
 
 ## Available Scripts
 
 - `bun run dev`: Start all applications in development mode
 - `bun run build`: Build all applications
+- `bun run test`: Run all tests (unit and E2E)
 - `bun run dev:web`: Start only the web application
 - `bun run dev:setup`: Setup and configure your Convex project
 - `bun run check-types`: Check TypeScript types across all apps

@@ -16,7 +16,9 @@
       "@types/react": "19.2.14",
       "@types/node": "^25.2.3",
       "react": "19.2.4",
-      "react-dom": "19.2.4"
+      "react-dom": "19.2.4",
+      "@testing-library/react": "^16.2.0",
+      "@happy-dom/global-registrator": "^20.6.1"
     }
   },
   "type": "module",
@@ -24,6 +26,9 @@
     "dev": "turbo dev",
     "build": "turbo build",
     "check-types": "turbo check-types",
+    "test": "turbo test",
+    "test:web": "turbo test --filter=web",
+    "test:e2e": "turbo test --filter=@yellow/e2e",
     "dev:native": "turbo -F native dev",
     "dev:web": "turbo -F web dev",
     "dev:server": "turbo -F @yellow/backend dev",
@@ -37,7 +42,7 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.3.15",
+    "@biomejs/biome": "2.3.13",
     "@yellow/config": "workspace:*",
     "turbo": "^2.8.7",
     "typescript": "^5.9.3",

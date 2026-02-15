@@ -37,7 +37,9 @@ Copy environment variables from `packages/backend/.env.local` to `apps/*/.env`.
 ### Environment Variables for Testing
 
 For E2E tests, the application uses mock Convex URLs to avoid requiring real Convex credentials:
-- CI environment variables are set in `.github/workflows/ci.yml`
+- **CI environment**: Set the following GitHub secrets in your repository settings:
+  - `VITE_CONVEX_URL`: Mock Convex URL (e.g., `https://mock-convex.test`)
+  - `VITE_CONVEX_SITE_URL`: Local site URL (e.g., `http://localhost:3001`)
 - Local E2E tests use fallback mock URLs defined in `packages/e2e/playwright.config.ts`
 - You can optionally create a `.env.test` file in the repository root with custom test values
 

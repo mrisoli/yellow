@@ -73,7 +73,7 @@ jobs:
         run: bun install
 
       - name: Run unit tests
-        run: bun test --filter=web
+        run: bunx turbo test --filter=web
 
   e2e-tests:
     name: E2E Tests

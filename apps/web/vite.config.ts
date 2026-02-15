@@ -6,17 +6,17 @@ import { defineConfig } from "vite";
 import tsconfigPaths from "vite-tsconfig-paths";
 
 export default defineConfig({
-	plugins: [
-		tsconfigPaths(),
-		tailwindcss(),
-		tanstackStart(),
-		viteReact(),
-		nitro(),
-	],
-	server: {
-		port: (process.env.PORT as unknown as number) ?? 3001,
-	},
-	ssr: {
-		noExternal: ["@convex-dev/better-auth"],
-	},
+  plugins: [
+    tsconfigPaths(),
+    tailwindcss(),
+    tanstackStart(),
+    viteReact(),
+    nitro(),
+  ],
+  server: {
+    port: (process.env.PORT as unknown as number) ?? 3001,
+  },
+  ssr: {
+    noExternal: ["@convex-dev/better-auth"],
+  },
 });

@@ -1,4 +1,5 @@
 {
+  "outputDirectory": ".output/public",
   "rewrites": [
     {
       "source": "/((?!api/.*|assets/.*|.*\\..*).*)",

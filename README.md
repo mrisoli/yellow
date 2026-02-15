@@ -34,6 +34,13 @@ Follow the prompts to create a new Convex project and connect it to your applica
 
 Copy environment variables from `packages/backend/.env.local` to `apps/*/.env`.
 
+### Environment Variables for Testing
+
+For E2E tests, the application uses mock Convex URLs to avoid requiring real Convex credentials:
+- CI environment variables are set in `.github/workflows/ci.yml`
+- Local E2E tests use fallback mock URLs defined in `packages/e2e/playwright.config.ts`
+- You can optionally create a `.env.test` file in the repository root with custom test values
+
 Then, run the development server:
 
 ```bash

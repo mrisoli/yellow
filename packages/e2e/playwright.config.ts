@@ -21,5 +21,9 @@ export default defineConfig({
     command: "cd ../../apps/web && bun run dev",
     url: "http://localhost:3001",
     reuseExistingServer: !process.env.CI,
+    env: {
+      VITE_CONVEX_URL: process.env.VITE_CONVEX_URL || "https://mock-convex.test",
+      VITE_CONVEX_SITE_URL: process.env.VITE_CONVEX_SITE_URL || "http://localhost:3001",
+    },
   },
 });

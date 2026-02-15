@@ -44,6 +44,9 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
+    env:
+      VITE_CONVEX_URL: https://mock-convex.test
+      VITE_CONVEX_SITE_URL: http://localhost:3001
     steps:
       - uses: actions/checkout@v4
 
@@ -78,6 +81,9 @@ jobs:
   e2e-tests:
     name: E2E Tests
     runs-on: ubuntu-latest
+    env:
+      VITE_CONVEX_URL: https://mock-convex.test
+      VITE_CONVEX_SITE_URL: http://localhost:3001
     steps:
       - uses: actions/checkout@v4
 

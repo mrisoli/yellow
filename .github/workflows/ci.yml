@@ -73,7 +73,7 @@ jobs:
         run: bun install
 
       - name: Run unit tests
-        run: bunx turbo test --filter=web
+        run: bun run test:web
 
   e2e-tests:
     name: E2E Tests
@@ -94,7 +94,7 @@ jobs:
         working-directory: packages/e2e
 
       - name: Run E2E tests
-        run: bun test --filter=@yellow/e2e
+        run: bun run test:e2e
 
       - name: Upload test results
         if: failure()

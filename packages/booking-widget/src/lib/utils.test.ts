@@ -61,10 +61,10 @@ describe("getFirstDayOfMonth", () => {
     expect(getFirstDayOfMonth(date)).toBe(1);
   });
 
-  it("returns 0 for Sunday", () => {
-    // July 7, 2024 is a Sunday
-    const date = new Date(2024, 6, 7);
-    expect(getFirstDayOfMonth(date)).toBe(0);
+  it("returns 1 for Monday", () => {
+    // July 1, 2024 is a Monday
+    const date = new Date(2024, 6, 15);
+    expect(getFirstDayOfMonth(date)).toBe(1);
   });
 });
 

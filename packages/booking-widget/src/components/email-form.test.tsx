@@ -21,7 +21,7 @@ describe("EmailForm", () => {
     expect(screen.getByText("Confirm Booking")).toBeInTheDocument();
   });
 
-  it("disables submit button when email is empty", async () => {
+  it("disables submit button when email is empty", () => {
     render(
       <EmailForm
         date="2024-06-20"
@@ -109,7 +109,7 @@ describe("EmailForm", () => {
 
     await new Promise((resolve) => setTimeout(resolve, 100));
 
-    expect(screen.getByText(/error|failed/i)).toBeInTheDocument();
+    expect(screen.getByText("HTTP error! status: 422")).toBeInTheDocument();
   });
 
   it("shows loading state while submitting", async () => {

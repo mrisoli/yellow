@@ -38,9 +38,9 @@ describe("Calendar", () => {
     );
 
     const headers = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-    headers.forEach((header) => {
+    for (const header of headers) {
       expect(screen.getByText(header)).toBeInTheDocument();
-    });
+    }
   });
 
   it("disables past dates", () => {

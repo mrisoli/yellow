@@ -1,7 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { api } from "@yellow/backend/convex/_generated/api";
 import { Button } from "@yellow/ui/components/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@yellow/ui/components/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@yellow/ui/components/card";
 import {
   Authenticated,
   AuthLoading,
@@ -37,7 +43,7 @@ function RouteComponent() {
       <AuthLoading>
         <div className="flex h-screen items-center justify-center">
           <div className="text-center">
-            <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent mx-auto mb-4" />
+            <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
             <p className="text-foreground">Loading...</p>
           </div>
         </div>
@@ -47,10 +53,13 @@ function RouteComponent() {
 }
 
 interface AuthenticatedDashboardProps {
-  user: {
-    name?: string;
-    email?: string;
-  } | null | undefined;
+  user:
+    | {
+        name?: string;
+        email?: string;
+      }
+    | null
+    | undefined;
 }
 
 function AuthenticatedDashboard({ user }: AuthenticatedDashboardProps) {
@@ -59,13 +68,13 @@ function AuthenticatedDashboard({ user }: AuthenticatedDashboardProps) {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="border-b border-foreground/10 bg-card">
-        <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 flex items-center justify-between">
+      <header className="border-foreground/10 border-b bg-card">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-6 sm:px-6 lg:px-8">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">
+            <h1 className="font-bold text-3xl text-foreground">
               Welcome back, {firstName}
             </h1>
-            <p className="mt-1 text-sm text-muted-foreground">
+            <p className="mt-1 text-muted-foreground text-sm">
               Here's your appointment overview
             </p>
           </div>
@@ -78,19 +87,15 @@ function AuthenticatedDashboard({ user }: AuthenticatedDashboardProps) {
         {/* Stats Section */}
         <div className="mb-8 grid gap-4 md:grid-cols-3">
           <StatCard
+            description="Scheduled for today"
             title="Today's Appointments"
             value="0"
-            description="Scheduled for today"
           />
+          <StatCard description="Next 7 days" title="Upcoming" value="—" />
           <StatCard
-            title="Upcoming"
-            value="—"
-            description="Next 7 days"
-          />
-          <StatCard
+            description="All time"
             title="Total Appointments"
             value="0"
-            description="All time"
           />
         </div>
 
@@ -99,18 +104,15 @@ function AuthenticatedDashboard({ user }: AuthenticatedDashboardProps) {
           <Card>
             <CardHeader>
               <CardTitle>Upcoming Appointments</CardTitle>
-              <CardDescription>
-                No appointments scheduled yet
-              </CardDescription>
+              <CardDescription>No appointments scheduled yet</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="flex flex-col items-center justify-center py-12 text-center">
-                <p className="text-muted-foreground mb-4">
-                  You don't have any upcoming appointments. Create one to get started!
+                <p className="mb-4 text-muted-foreground">
+                  You don't have any upcoming appointments. Create one to get
+                  started!
                 </p>
-                <Button variant="default">
-                  New Appointment
-                </Button>
+                <Button variant="default">New Appointment</Button>
               </div>
             </CardContent>
           </Card>
@@ -118,17 +120,27 @@ function AuthenticatedDashboard({ user }: AuthenticatedDashboardProps) {
 
         {/* Quick Actions Section */}
         <div>
-          <h2 className="mb-4 text-lg font-semibold text-foreground">
+          <h2 className="mb-4 font-semibold text-foreground text-lg">
             Quick Actions
           </h2>
           <div className="grid gap-4 sm:grid-cols-2">
-            <Button variant="outline" className="h-auto flex-col items-start justify-start py-4 px-4">
+            <Button
+              className="h-auto flex-col items-start justify-start px-4 py-4"
+              variant="outline"
+            >
               <span className="font-semibold">New Appointment</span>
-              <span className="text-xs text-muted-foreground">Schedule a new appointment</span>
+              <span className="text-muted-foreground text-xs">
+                Schedule a new appointment
+              </span>
             </Button>
-            <Button variant="outline" className="h-auto flex-col items-start justify-start py-4 px-4">
+            <Button
+              className="h-auto flex-col items-start justify-start px-4 py-4"
+              variant="outline"
+            >
               <span className="font-semibold">View Calendar</span>
-              <span className="text-xs text-muted-foreground">See all your appointments</span>
+              <span className="text-muted-foreground text-xs">
+                See all your appointments
+              </span>
             </Button>
           </div>
         </div>
@@ -138,26 +150,22 @@ function AuthenticatedDashboard({ user }: AuthenticatedDashboardProps) {
 }
 
 interface StatCardProps {
+  description: string;
   title: string;
   value: string;
-  description: string;
 }
 
 function StatCard({ title, value, description }: StatCardProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-sm font-medium text-muted-foreground">
+        <CardTitle className="font-medium text-muted-foreground text-sm">
           {title}
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="text-3xl font-bold text-foreground mb-2">
-          {value}
-        </div>
-        <p className="text-xs text-muted-foreground">
-          {description}
-        </p>
+        <div className="mb-2 font-bold text-3xl text-foreground">{value}</div>
+        <p className="text-muted-foreground text-xs">{description}</p>
       </CardContent>
     </Card>
   );

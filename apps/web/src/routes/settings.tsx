@@ -1,13 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { api } from "@yellow/backend/convex/_generated/api";
-import {
-  Authenticated,
-  AuthLoading,
-  Unauthenticated,
-  useQuery,
-} from "convex/react";
-import { useState } from "react";
-
 import { Button } from "@yellow/ui/components/button";
 import {
   Card,
@@ -19,6 +11,13 @@ import {
 import { Input } from "@yellow/ui/components/input";
 import { Label } from "@yellow/ui/components/label";
 import { Skeleton } from "@yellow/ui/components/skeleton";
+import {
+  Authenticated,
+  AuthLoading,
+  Unauthenticated,
+  useQuery,
+} from "convex/react";
+import { useState } from "react";
 import SignInForm from "@/components/sign-in-form";
 import SignUpForm from "@/components/sign-up-form";
 import { authClient } from "@/lib/auth-client";
@@ -48,7 +47,7 @@ function RouteComponent() {
     <>
       <Authenticated>
         <div className="container mx-auto max-w-2xl px-4 py-8">
-          <h1 className="mb-6 text-3xl font-bold">Settings</h1>
+          <h1 className="mb-6 font-bold text-3xl">Settings</h1>
 
           <div className="space-y-6">
             {/* Profile Section */}
@@ -66,11 +65,11 @@ function RouteComponent() {
                     <Skeleton className="h-10 w-full" />
                   ) : (
                     <Input
+                      disabled
                       id="name"
+                      placeholder="Your name"
                       type="text"
                       value={user?.name ?? ""}
-                      disabled
-                      placeholder="Your name"
                     />
                   )}
                 </div>
@@ -81,16 +80,16 @@ function RouteComponent() {
                     <Skeleton className="h-10 w-full" />
                   ) : (
                     <Input
+                      disabled
                       id="email"
+                      placeholder="your@email.com"
                       type="email"
                       value={user?.email ?? ""}
-                      disabled
-                      placeholder="your@email.com"
                     />
                   )}
                 </div>
 
-                <Button variant="outline" disabled>
+                <Button disabled variant="outline">
                   Edit Profile
                 </Button>
               </CardContent>
@@ -141,7 +140,7 @@ function RouteComponent() {
 
       <AuthLoading>
         <div className="container mx-auto max-w-2xl px-4 py-8">
-          <h1 className="mb-6 text-3xl font-bold">Settings</h1>
+          <h1 className="mb-6 font-bold text-3xl">Settings</h1>
           <div className="space-y-6">
             {[1, 2, 3].map((i) => (
               <Card key={i}>

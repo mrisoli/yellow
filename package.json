@@ -17,6 +17,7 @@
       "convex": "^1.32.0",
       "better-auth": "1.4.9",
       "@convex-dev/better-auth": "^0.10.13",
+      "@types/node": "^25",
       "@types/react": "^19.2.10",
       "@types/react-dom": "^19.2.3",
       "tailwindcss": "^4.1.18"
@@ -31,7 +32,9 @@
     "dev:server": "turbo -F @yellow/backend dev",
     "dev:setup": "turbo -F @yellow/backend dev:setup",
     "check": "ultracite check",
-    "fix": "ultracite fix"
+    "fix": "ultracite fix",
+    "test": "turbo test",
+    "test:e2e": "turbo test:e2e"
   },
   "dependencies": {
     "@yellow/env": "workspace:*",

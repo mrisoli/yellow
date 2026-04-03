@@ -1,0 +1,16 @@
+{
+  "name": "@yellow/e2e",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check-types": "tsc --noEmit",
+    "test:e2e": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.52.0",
+    "@types/node": "catalog:",
+    "@yellow/config": "workspace:*",
+    "typescript": "^5"
+  }
+}

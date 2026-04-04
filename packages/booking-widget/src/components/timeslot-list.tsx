@@ -1,7 +1,8 @@
-import { cn, formatDate, isTimeBlocked } from "../lib/utils";
-import type { BlockedTime } from "../types";
+import { cn, formatDate, getAvailableTimeslots, isTimeBlocked } from "../lib/utils";
+import type { DayAvailability, BlockedTime } from "../types";
 
 interface TimeslotListProps {
+  availability?: DayAvailability[];
   blockedTimes?: BlockedTime[];
   className?: string;
   date: Date;
@@ -13,20 +14,26 @@ interface TimeslotListProps {
 export function TimeslotList({
   date,
   meetingDuration,
+  availability,
   blockedTimes = [],
   selectedTime,
   onTimeSelect,
   className,
 }: TimeslotListProps) {
-  const dateStr = formatDate(date);
-  const timeslots: string[] = [];
+  const timeslots = getAvailableTimeslots(date, meetingDuration, availability);
 
-  for (let hour = 9; hour < 17; hour++) {
-    for (let minute = 0; minute < 60; minute += meetingDuration) {
-      const timeStr = `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
-      timeslots.push(timeStr);
-    }
+  if (timeslots.length === 0) {
+    return (
+      <div className={cn("space-y-3", className)}>
+        <h3 className="font-semibold">Select a time slot</h3>
+        <p className="text-muted-foreground text-sm">
+          No available slots for this day.
+        </p>
+      </div>
+    );
   }
+
+  const dateStr = formatDate(date);
 
   return (
     <div className={cn("space-y-3", className)}>

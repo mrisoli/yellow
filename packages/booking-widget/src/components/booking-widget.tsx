@@ -11,6 +11,7 @@ export function BookingWidget({
   defaultDate,
   defaultMonth,
   meetingDuration = 30,
+  availability,
   blockedTimes,
   submitUrl = "http://localhost:3000/bookings",
   className,
@@ -73,6 +74,7 @@ export function BookingWidget({
             })}
           </h2>
           <TimeslotList
+            availability={availability}
             blockedTimes={blockedTimes}
             date={selectedDate}
             meetingDuration={meetingDuration}

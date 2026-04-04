@@ -4,7 +4,28 @@ export interface BlockedTime {
   startTime: string;
 }
 
+/** A single contiguous time window within a day (24-hour "HH:mm" strings). */
+export interface TimeRange {
+  endTime: string;
+  startTime: string;
+}
+
+/**
+ * Availability for one day of the week.
+ * dayOfWeek follows JS conventions: 0 = Sunday, 6 = Saturday.
+ */
+export interface DayAvailability {
+  dayOfWeek: number;
+  enabled: boolean;
+  timeRanges: TimeRange[];
+}
+
 export interface BookingWidgetProps {
+  /**
+   * Weekly availability schedule used to determine which time slots to show.
+   * When omitted the widget falls back to 09:00–17:00 Mon–Fri.
+   */
+  availability?: DayAvailability[];
   blockedTimes?: BlockedTime[];
   className?: string;
   defaultDate?: Date;

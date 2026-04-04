@@ -61,4 +61,20 @@ export default defineSchema({
   })
     .index("by_bookingId", ["bookingId"])
     .index("by_stripePaymentIntentId", ["stripePaymentIntentId"]),
+
+  availabilitySchedules: defineTable({
+    userId: v.string(),
+    schedule: v.array(
+      v.object({
+        dayOfWeek: v.number(),
+        enabled: v.boolean(),
+        timeRanges: v.array(
+          v.object({
+            startTime: v.string(),
+            endTime: v.string(),
+          })
+        ),
+      })
+    ),
+  }).index("by_userId", ["userId"]),
 });

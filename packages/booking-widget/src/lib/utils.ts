@@ -1,6 +1,8 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 
+import type { DayAvailability } from "../types";
+
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
@@ -57,4 +59,64 @@ export function isPastDate(date: Date): boolean {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   return date < today;
+}
+
+/**
+ * Generate the list of time slots (in "HH:mm" format) available for a given
+ * date, based on the host's weekly availability schedule and the meeting
+ * duration.
+ *
+ * Falls back to 09:00–17:00 when no schedule is provided (preserving the
+ * original behaviour of the widget).
+ */
+export function getAvailableTimeslots(
+  date: Date,
+  meetingDuration: number,
+  availability?: DayAvailability[]
+): string[] {
+  const dayOfWeek = date.getDay();
+
+  // If no schedule is provided, use the legacy 09:00–17:00 window.
+  if (!availability) {
+    const slots: string[] = [];
+    for (let hour = 9; hour < 17; hour++) {
+      for (let minute = 0; minute < 60; minute += meetingDuration) {
+        slots.push(
+          `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`
+        );
+      }
+    }
+    return slots;
+  }
+
+  const dayConfig = availability.find((d) => d.dayOfWeek === dayOfWeek);
+
+  // Day is disabled or missing → no slots.
+  if (!dayConfig?.enabled || dayConfig.timeRanges.length === 0) {
+    return [];
+  }
+
+  const slots: string[] = [];
+
+  for (const range of dayConfig.timeRanges) {
+    const [startHour = 0, startMin = 0] = range.startTime
+      .split(":")
+      .map(Number);
+    const [endHour = 0, endMin = 0] = range.endTime.split(":").map(Number);
+
+    const startTotal = startHour * 60 + startMin;
+    const endTotal = endHour * 60 + endMin;
+
+    for (
+      let minutes = startTotal;
+      minutes + meetingDuration <= endTotal;
+      minutes += meetingDuration
+    ) {
+      const h = Math.floor(minutes / 60);
+      const m = minutes % 60;
+      slots.push(`${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`);
+    }
+  }
+
+  return slots;
 }

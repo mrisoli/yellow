@@ -6,8 +6,8 @@ export interface BlockedTime {
 
 /** A single contiguous time window within a day (24-hour "HH:mm" strings). */
 export interface TimeRange {
-  startTime: string;
   endTime: string;
+  startTime: string;
 }
 
 /**

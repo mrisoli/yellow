@@ -1,5 +1,10 @@
-import { cn, formatDate, getAvailableTimeslots, isTimeBlocked } from "../lib/utils";
-import type { DayAvailability, BlockedTime } from "../types";
+import {
+  cn,
+  formatDate,
+  getAvailableTimeslots,
+  isTimeBlocked,
+} from "../lib/utils";
+import type { BlockedTime, DayAvailability } from "../types";
 
 interface TimeslotListProps {
   availability?: DayAvailability[];

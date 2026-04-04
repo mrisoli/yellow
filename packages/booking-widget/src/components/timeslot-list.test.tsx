@@ -126,9 +126,7 @@ describe("TimeslotList", () => {
   it("shows no slots when the day is disabled in the availability schedule", () => {
     // June 20, 2024 is a Thursday (dayOfWeek = 4)
     const date = new Date(2024, 5, 20);
-    const availability = [
-      { dayOfWeek: 4, enabled: false, timeRanges: [] },
-    ];
+    const availability = [{ dayOfWeek: 4, enabled: false, timeRanges: [] }];
 
     render(
       <TimeslotList
@@ -141,7 +139,9 @@ describe("TimeslotList", () => {
       />
     );
 
-    expect(screen.getByText("No available slots for this day.")).toBeInTheDocument();
+    expect(
+      screen.getByText("No available slots for this day.")
+    ).toBeInTheDocument();
   });
 
   it("only shows slots within a custom time range from the availability schedule", () => {

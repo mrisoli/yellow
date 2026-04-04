@@ -1,7 +1,6 @@
 import { v } from "convex/values";
-
-import { authComponent } from "./auth";
 import { mutation, query } from "./_generated/server";
+import { authComponent } from "./auth";
 
 const DAY_SCHEDULE = v.object({
   dayOfWeek: v.number(),

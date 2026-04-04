@@ -19,7 +19,7 @@ import {
   useMutation,
   useQuery,
 } from "convex/react";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import SignInForm from "@/components/sign-in-form";
 import SignUpForm from "@/components/sign-up-form";
@@ -39,8 +39,8 @@ const DAY_NAMES = [
 ];
 
 interface TimeRange {
-  startTime: string;
   endTime: string;
+  startTime: string;
 }
 
 interface DaySchedule {
@@ -73,10 +73,7 @@ function AvailabilityEditor() {
     }
   }, [savedSchedule]);
 
-  const updateDay = (
-    dayOfWeek: number,
-    patch: Partial<DaySchedule>
-  ) => {
+  const updateDay = (dayOfWeek: number, patch: Partial<DaySchedule>) => {
     setLocalSchedule((prev) =>
       prev.map((day) =>
         day.dayOfWeek === dayOfWeek ? { ...day, ...patch } : day
@@ -91,7 +88,9 @@ function AvailabilityEditor() {
   ) => {
     setLocalSchedule((prev) =>
       prev.map((day) => {
-        if (day.dayOfWeek !== dayOfWeek) return day;
+        if (day.dayOfWeek !== dayOfWeek) {
+          return day;
+        }
         const newRanges = day.timeRanges.map((range, i) =>
           i === index ? { ...range, ...patch } : range
         );
@@ -103,7 +102,9 @@ function AvailabilityEditor() {
   const addTimeRange = (dayOfWeek: number) => {
     setLocalSchedule((prev) =>
       prev.map((day) => {
-        if (day.dayOfWeek !== dayOfWeek) return day;
+        if (day.dayOfWeek !== dayOfWeek) {
+          return day;
+        }
         return {
           ...day,
           timeRanges: [
@@ -118,7 +119,9 @@ function AvailabilityEditor() {
   const removeTimeRange = (dayOfWeek: number, index: number) => {
     setLocalSchedule((prev) =>
       prev.map((day) => {
-        if (day.dayOfWeek !== dayOfWeek) return day;
+        if (day.dayOfWeek !== dayOfWeek) {
+          return day;
+        }
         const newRanges = day.timeRanges.filter((_, i) => i !== index);
         return { ...day, timeRanges: newRanges };
       })
@@ -176,7 +179,7 @@ function AvailabilityEditor() {
                   {day.timeRanges.map((range, rangeIndex) => (
                     <div
                       className="flex items-center gap-2"
-                      key={`${day.dayOfWeek}-${rangeIndex}`}
+                      key={`${day.dayOfWeek}-${range.startTime}-${range.endTime}`}
                     >
                       <Input
                         className="w-32"

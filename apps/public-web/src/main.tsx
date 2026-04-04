@@ -1,12 +1,10 @@
 import { ConvexBetterAuthProvider } from "@convex-dev/better-auth/react";
 import { createRouter, RouterProvider } from "@tanstack/react-router";
 import { env } from "@yellow/env/web";
+import Loader from "@yellow/ui/components/loader";
 import { ConvexReactClient } from "convex/react";
 import ReactDOM from "react-dom/client";
-
 import { authClient } from "@/lib/auth-client";
-
-import Loader from "./components/loader";
 import { routeTree } from "./routeTree.gen";
 
 const convex = new ConvexReactClient(env.VITE_CONVEX_URL);

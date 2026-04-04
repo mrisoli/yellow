@@ -2,101 +2,215 @@
 # =============================================================================
 # linear-agent.sh
 #
-# Polls Linear for "Backlog" and "Todo" issues and automatically:
+# Implements a single Linear issue (Cowork-orchestrated mode) OR polls Linear
+# directly (standalone mode) and then:
 #   1. Creates a feature branch
 #   2. Runs Claude to implement the changes
-#   3. Opens a GitHub PR via the GitHub REST API
+#   3. Opens a GitHub PR via the gh CLI
 #   4. Enables auto-merge (merges when CI passes)
-#   5. Updates the Linear issue status + adds a comment
+#   5. Updates the Linear issue status + adds a comment (if LINEAR_API_KEY set)
 #
 # If there are no Backlog/Todo issues, it scans open PRs for failing CI checks
 # and runs Claude to fix any errors it finds.
 #
-# Prerequisites:
-#   - LINEAR_API_KEY  — from Linear Settings › API › Personal API keys
-#   - GH_TOKEN        — GitHub personal access token (repo + pull_request scopes)
-#   - claude          — Claude CLI in PATH
-#   - jq              — JSON processor (`brew install jq`)
-#   - git             — with SSH/HTTPS credentials for the repo
+# ── Operating modes ──────────────────────────────────────────────────────────
 #
-# Credentials can be provided via environment variables OR a .env file at
-# scripts/.env (this file is gitignored — never commit credentials):
+#   COWORK MODE (preferred — used by Cowork scheduled task):
+#     Called by Claude after it queries Linear via MCP. Issue data is passed via
+#     environment variables. Linear status updates are handled by Claude/MCP.
 #
-#   LINEAR_API_KEY=lin_api_...
-#   GH_TOKEN=ghp_...
+#     Required env vars:
+#       ISSUE_IDENTIFIER   e.g. "UNL-35"
+#       ISSUE_LINEAR_ID    e.g. "abc123-..."   (Linear internal UUID)
+#       ISSUE_TITLE        e.g. "Google Calendar sync"
+#       ISSUE_DESCRIPTION  (full description text)
+#
+#   STANDALONE MODE (used when running outside Cowork):
+#     Queries Linear API directly. All Linear status updates are handled here.
+#
+#     Required env var (or in scripts/.env):
+#       LINEAR_API_KEY     lin_api_...
+#
+# ── GitHub authentication ─────────────────────────────────────────────────────
+#
+#   The script uses the gh CLI for all GitHub operations (auto-installs if
+#   missing via Homebrew). To authenticate gh CLI, either:
+#     a) Run `gh auth login` once (browser-based, persists in keychain)
+#     b) Set GH_TOKEN in environment or scripts/.env (non-interactive)
+#
+# ── Other prerequisites ───────────────────────────────────────────────────────
+#   - claude   — Claude CLI in PATH (https://claude.ai/code)
+#   - jq       — JSON processor (`brew install jq`)
+#   - git      — with SSH or HTTPS credentials for the repo
 #
 # Usage:
-#   bash scripts/linear-agent.sh
+#   bash scripts/linear-agent.sh                     # standalone mode
+#   ISSUE_IDENTIFIER=UNL-35 ... bash scripts/...     # Cowork/single-issue mode
 # =============================================================================
 
 set -euo pipefail
 
 # ---------------------------------------------------------------------------
-# Configuration — edit GITHUB_REPO if you fork or rename the project
+# Configuration
 # ---------------------------------------------------------------------------
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_PATH="$(cd "$SCRIPT_DIR/.." && pwd)"
 GITHUB_REPO="mrisoli/yellow"
 BASE_BRANCH="main"
 
-# Linear workspace constants
+# Linear workspace constants (used in standalone mode)
 LINEAR_TEAM_ID="c4962e7a-41a8-4ec7-b5ea-53fa2a4a1e92"
 LINEAR_BACKLOG_STATUS_ID="f16554f0-df64-4890-8cf1-4818781d2eb0"
 LINEAR_TODO_STATUS_ID="782868c7-efb7-4455-91a7-29ae591dc15d"
 LINEAR_IN_PROGRESS_STATUS_ID="b9bd611c-b7a2-4561-81ca-4e9f53be5b94"
 LINEAR_IN_REVIEW_STATUS_ID="2bb1c368-181c-49be-9ff4-68d330a0f179"
-
 LINEAR_API_URL="https://api.linear.app/graphql"
-GITHUB_API_URL="https://api.github.com"
 
 # ---------------------------------------------------------------------------
-# Load .env file if present (allows sandbox / CI use without shell exports)
+# Load .env file if present
 # ---------------------------------------------------------------------------
 ENV_FILE="$SCRIPT_DIR/.env"
 if [[ -f "$ENV_FILE" ]]; then
-  # shellcheck disable=SC1090
   set -a
+  # shellcheck disable=SC1090
   source "$ENV_FILE"
   set +a
 fi
 
 # ---------------------------------------------------------------------------
+# Detect operating mode
+# ---------------------------------------------------------------------------
+COWORK_MODE=false
+if [[ -n "${ISSUE_IDENTIFIER:-}" ]]; then
+  COWORK_MODE=true
+fi
+
+# ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
-
 log()  { echo "$(date '+%H:%M:%S') $*"; }
 info() { log "  ℹ $*"; }
 ok()   { log "  ✓ $*"; }
 err()  { log "  ✗ $*" >&2; }
 
-check_prereqs() {
-  local missing=()
-  [[ -z "${LINEAR_API_KEY:-}" ]] && missing+=("LINEAR_API_KEY (export it, add to ~/.zshrc, or put it in scripts/.env)")
-  [[ -z "${GH_TOKEN:-}" ]]       && missing+=("GH_TOKEN (export it, add to ~/.zshrc, or put it in scripts/.env)")
-  command -v claude &>/dev/null || missing+=("claude CLI  — https://claude.ai/code")
-  command -v jq     &>/dev/null || missing+=("jq  — brew install jq")
-  command -v git    &>/dev/null || missing+=("git")
-
-  if [[ ${#missing[@]} -gt 0 ]]; then
-    err "Missing prerequisites:"
-    for item in "${missing[@]}"; do
-      err "  • $item"
-    done
-    exit 1
+# ---------------------------------------------------------------------------
+# GitHub CLI setup — installs gh if missing, authenticates if needed
+# ---------------------------------------------------------------------------
+setup_gh_cli() {
+  # Install gh CLI if not present
+  if ! command -v gh &>/dev/null; then
+    info "gh CLI not found — installing via Homebrew..."
+    if ! command -v brew &>/dev/null; then
+      err "Homebrew is not installed. Install gh CLI manually: https://cli.github.com"
+      err "Then run: gh auth login"
+      exit 1
+    fi
+    brew install gh
+    ok "gh CLI installed"
   fi
 
-  # Verify GitHub token works
-  local gh_user
-  gh_user=$(curl -sf -H "Authorization: Bearer $GH_TOKEN" \
-    "$GITHUB_API_URL/user" | jq -r '.login' 2>/dev/null || true)
-  if [[ -z "$gh_user" ]]; then
-    err "GH_TOKEN does not appear to be valid — check that it has repo + pull_requests scopes"
-    exit 1
+  # Authenticate gh CLI if needed
+  if ! gh auth status &>/dev/null 2>&1; then
+    if [[ -n "${GH_TOKEN:-}" ]]; then
+      info "Authenticating gh CLI with GH_TOKEN..."
+      echo "$GH_TOKEN" | gh auth login --with-token
+      ok "gh CLI authenticated"
+    else
+      err "gh CLI is not authenticated."
+      err "Run one of the following to set up access:"
+      err "  • gh auth login                    (interactive browser login)"
+      err "  • echo \$GH_TOKEN | gh auth login --with-token"
+      err "  • Add GH_TOKEN=ghp_... to scripts/.env"
+      exit 1
+    fi
   fi
-  info "GitHub authenticated as: $gh_user"
+
+  info "GitHub: $(gh auth status 2>&1 | grep 'Logged in' | head -1 | sed 's/.*Logged in to //' | sed 's/ as / as /')"
 }
 
-# Execute a Linear GraphQL request
+# ---------------------------------------------------------------------------
+# GitHub operations (gh CLI)
+# ---------------------------------------------------------------------------
+
+# Create a PR and print its URL
+github_create_pr() {
+  local branch="$1" title="$2" body="$3"
+  gh pr create \
+    --repo "$GITHUB_REPO" \
+    --title "$title" \
+    --body "$body" \
+    --head "$branch" \
+    --base "$BASE_BRANCH" \
+    2>/dev/null
+}
+
+# Enable auto-merge on a PR by number
+github_enable_automerge() {
+  local pr_number="$1"
+  gh pr merge "$pr_number" \
+    --repo "$GITHUB_REPO" \
+    --auto \
+    --squash \
+    2>/dev/null || true
+  # Non-fatal: auto-merge may not be enabled on the repo
+}
+
+# Print a JSON array of open PRs: [{number, title, headRefName}]
+get_open_prs() {
+  gh pr list \
+    --repo "$GITHUB_REPO" \
+    --state open \
+    --limit 50 \
+    --json number,title,headRefName \
+    2>/dev/null || echo "[]"
+}
+
+# Print "failing", "pending", "passing", or "no_checks" for a branch's latest CI
+get_pr_ci_status() {
+  local branch="$1"
+
+  local checks
+  checks=$(gh pr checks \
+    --repo "$GITHUB_REPO" \
+    "$branch" \
+    --json name,conclusion,status \
+    2>/dev/null || echo "[]")
+
+  local total failed in_progress
+  total=$(echo "$checks"      | jq 'length')
+  failed=$(echo "$checks"     | jq '[.[] | select(.conclusion == "FAILURE" or .conclusion == "TIMED_OUT")] | length')
+  in_progress=$(echo "$checks"| jq '[.[] | select(.status == "IN_PROGRESS" or .status == "QUEUED" or .status == "WAITING")] | length')
+
+  if   [[ "$total"       -eq 0 ]]; then echo "no_checks"
+  elif [[ "$failed"      -gt 0 ]]; then echo "failing"
+  elif [[ "$in_progress" -gt 0 ]]; then echo "pending"
+  else echo "passing"
+  fi
+}
+
+# Print a human-readable summary of failing checks for a branch
+get_failing_checks_summary() {
+  local branch="$1"
+  gh pr checks \
+    --repo "$GITHUB_REPO" \
+    "$branch" \
+    --json name,conclusion,detailsUrl \
+    2>/dev/null \
+  | jq -r '
+    .[]
+    | select(.conclusion == "FAILURE" or .conclusion == "TIMED_OUT")
+    | "  Check: \(.name)\n  Conclusion: \(.conclusion)\n  Details: \(.detailsUrl // "(no url)")\n"
+  ' || echo "(could not fetch check details)"
+}
+
+# ---------------------------------------------------------------------------
+# Linear API helpers (standalone mode only — Cowork mode skips these)
+# ---------------------------------------------------------------------------
+
+linear_api_available() {
+  [[ -n "${LINEAR_API_KEY:-}" ]]
+}
+
 linear_gql() {
   curl -sf -X POST "$LINEAR_API_URL" \
     -H "Authorization: $LINEAR_API_KEY" \
@@ -104,7 +218,6 @@ linear_gql() {
     -d "$1"
 }
 
-# Fetch all issues in "Backlog" or "Todo" state for the configured team
 get_actionable_issues() {
   linear_gql "$(jq -n \
     --arg teamId      "$LINEAR_TEAM_ID" \
@@ -116,65 +229,64 @@ get_actionable_issues() {
     }')"
 }
 
-# Move a Linear issue to a new status
 set_issue_status() {
   local issue_id="$1" status_id="$2"
-  linear_gql "$(jq -n \
-    --arg id      "$issue_id" \
-    --arg stateId "$status_id" \
-    '{
-      query: "mutation SetStatus($id: String!, $stateId: String!) { issueUpdate(id: $id, input: { stateId: $stateId }) { success } }",
-      variables: { id: $id, stateId: $stateId }
-    }')" >/dev/null
+  if linear_api_available; then
+    linear_gql "$(jq -n \
+      --arg id      "$issue_id" \
+      --arg stateId "$status_id" \
+      '{
+        query: "mutation SetStatus($id: String!, $stateId: String!) { issueUpdate(id: $id, input: { stateId: $stateId }) { success } }",
+        variables: { id: $id, stateId: $stateId }
+      }')" >/dev/null
+  else
+    info "LINEAR_API_KEY not set — skipping Linear status update (handled by Cowork MCP)"
+  fi
 }
 
-# Post a comment on a Linear issue
 add_linear_comment() {
   local issue_id="$1" body="$2"
-  linear_gql "$(jq -n \
-    --arg issueId "$issue_id" \
-    --arg body    "$body" \
-    '{
-      query: "mutation AddComment($issueId: String!, $body: String!) { commentCreate(input: { issueId: $issueId, body: $body }) { success } }",
-      variables: { issueId: $issueId, body: $body }
-    }')" >/dev/null
-}
-
-# Create a GitHub PR via REST API — prints the PR URL
-github_create_pr() {
-  local branch="$1" title="$2" body="$3"
-  curl -sf \
-    -H "Authorization: Bearer $GH_TOKEN" \
-    -H "Accept: application/vnd.github+json" \
-    -H "X-GitHub-Api-Version: 2022-11-28" \
-    "$GITHUB_API_URL/repos/$GITHUB_REPO/pulls" \
-    -d "$(jq -n \
-      --arg title "$title" \
-      --arg body  "$body" \
-      --arg head  "$branch" \
-      --arg base  "$BASE_BRANCH" \
-      '{title: $title, body: $body, head: $head, base: $base}')" \
-  | jq -r '.html_url'
-}
-
-# Enable auto-merge on a PR (requires the repo to have auto-merge enabled in Settings)
-github_enable_automerge() {
-  local pr_node_id="$1"
-  # GraphQL mutation — REST doesn't expose auto-merge
-  curl -sf \
-    -H "Authorization: Bearer $GH_TOKEN" \
-    -H "Content-Type: application/json" \
-    "https://api.github.com/graphql" \
-    -d "$(jq -n \
-      --arg prId "$pr_node_id" \
+  if linear_api_available; then
+    linear_gql "$(jq -n \
+      --arg issueId "$issue_id" \
+      --arg body    "$body" \
       '{
-        query: "mutation($prId: ID!) { enablePullRequestAutoMerge(input: { pullRequestId: $prId, mergeMethod: SQUASH }) { pullRequest { autoMergeRequest { enabledAt } } } }",
-        variables: { prId: $prId }
-      }')" >/dev/null 2>&1 || true
-  # Non-fatal: auto-merge may not be enabled on the repo — the PR is still created
+        query: "mutation AddComment($issueId: String!, $body: String!) { commentCreate(input: { issueId: $issueId, body: $body }) { success } }",
+        variables: { issueId: $issueId, body: $body }
+      }')" >/dev/null
+  else
+    info "LINEAR_API_KEY not set — skipping Linear comment (handled by Cowork MCP)"
+  fi
 }
 
-# Build a safe git branch name from issue identifier + title
+# ---------------------------------------------------------------------------
+# Prerequisites check
+# ---------------------------------------------------------------------------
+check_prereqs() {
+  local missing=()
+  command -v claude &>/dev/null || missing+=("claude CLI  — https://claude.ai/code")
+  command -v jq     &>/dev/null || missing+=("jq  — brew install jq")
+  command -v git    &>/dev/null || missing+=("git")
+
+  # In standalone mode, LINEAR_API_KEY is required
+  if [[ "$COWORK_MODE" == "false" ]] && [[ -z "${LINEAR_API_KEY:-}" ]]; then
+    missing+=("LINEAR_API_KEY  — set in env or scripts/.env (not needed in Cowork mode)")
+  fi
+
+  if [[ ${#missing[@]} -gt 0 ]]; then
+    err "Missing prerequisites:"
+    for item in "${missing[@]}"; do
+      err "  • $item"
+    done
+    exit 1
+  fi
+
+  setup_gh_cli
+}
+
+# ---------------------------------------------------------------------------
+# Build a safe git branch name
+# ---------------------------------------------------------------------------
 make_branch_name() {
   local identifier="$1" title="$2"
   local id_lower slug
@@ -188,7 +300,7 @@ make_branch_name() {
 }
 
 # ---------------------------------------------------------------------------
-# Core: process one Linear issue
+# Core: implement one issue
 # ---------------------------------------------------------------------------
 process_issue() {
   local issue_id="$1"
@@ -202,29 +314,24 @@ process_issue() {
   log "━━━ $identifier: $title"
   info "Branch → $branch"
 
-  # ── Guard: skip if the branch is already on the remote ──────────────────
+  # Guard: skip if the branch is already on the remote
   if git -C "$REPO_PATH" ls-remote --heads origin "$branch" 2>/dev/null | grep -q .; then
     info "Branch already exists remotely — skipping (already in progress)"
     return 0
   fi
 
-  # ── Mark In Progress ─────────────────────────────────────────────────────
+  # Mark In Progress (no-op in Cowork mode — Claude updates Linear via MCP)
   set_issue_status "$issue_id" "$LINEAR_IN_PROGRESS_STATUS_ID"
   info "Linear status → In Progress"
 
-  # ── Prepare a clean branch from main ─────────────────────────────────────
-  # Configure git to use GH_TOKEN for HTTPS authentication
-  git -C "$REPO_PATH" config credential.helper "store" 2>/dev/null || true
-  printf 'https://%s:x-oauth-basic@github.com\n' "$GH_TOKEN" \
-    > "$HOME/.git-credentials" 2>/dev/null || true
-
+  # Prepare a clean branch from main
   git -C "$REPO_PATH" fetch origin "$BASE_BRANCH" --quiet
   git -C "$REPO_PATH" checkout "$BASE_BRANCH" --quiet
   git -C "$REPO_PATH" reset --hard "origin/$BASE_BRANCH" --quiet
   git -C "$REPO_PATH" checkout -b "$branch"
   info "Branch created from origin/$BASE_BRANCH"
 
-  # ── Build the implementation prompt ──────────────────────────────────────
+  # Build the implementation prompt
   local prompt
   prompt=$(cat <<PROMPT
 You are implementing a Linear issue in a TypeScript monorepo (Next.js · Convex · Better Auth).
@@ -255,7 +362,7 @@ $(echo "${description}" | head -c 3000)
 PROMPT
 )
 
-  # ── Run Claude to implement ───────────────────────────────────────────────
+  # Run Claude to implement
   info "Running Claude to implement (this may take a few minutes)…"
   if ! claude \
       --permission-mode bypassPermissions \
@@ -268,7 +375,7 @@ PROMPT
     return 1
   fi
 
-  # ── Verify the branch was actually pushed ─────────────────────────────────
+  # Verify the branch was pushed
   if ! git -C "$REPO_PATH" ls-remote --heads origin "$branch" 2>/dev/null | grep -q .; then
     err "Branch was not pushed for $identifier — Claude may not have completed the commit/push step"
     git -C "$REPO_PATH" checkout "$BASE_BRANCH" --quiet
@@ -277,7 +384,7 @@ PROMPT
   fi
   ok "Branch pushed"
 
-  # ── Open the PR via GitHub REST API ──────────────────────────────────────
+  # Open the PR via gh CLI
   local pr_body pr_url pr_number
   pr_body="$(cat <<BODY
 ## Linear Issue
@@ -299,102 +406,32 @@ BODY
     set_issue_status "$issue_id" "$LINEAR_TODO_STATUS_ID"
     return 1
   fi
-  info "PR opened: $pr_url"
+  ok "PR opened: $pr_url"
 
-  # Extract PR number and enable auto-merge (best-effort)
+  # Enable auto-merge
   pr_number=$(echo "$pr_url" | grep -oE '[0-9]+$' || true)
   if [[ -n "$pr_number" ]]; then
-    # Get the node ID needed for the GraphQL auto-merge mutation
-    local pr_node_id
-    pr_node_id=$(curl -sf \
-      -H "Authorization: Bearer $GH_TOKEN" \
-      -H "Accept: application/vnd.github+json" \
-      "$GITHUB_API_URL/repos/$GITHUB_REPO/pulls/$pr_number" \
-      | jq -r '.node_id' 2>/dev/null || true)
-    [[ -n "$pr_node_id" ]] && github_enable_automerge "$pr_node_id"
+    github_enable_automerge "$pr_number"
     ok "Auto-merge requested"
   fi
 
-  # ── Update Linear ─────────────────────────────────────────────────────────
+  # Update Linear (no-op in Cowork mode)
   set_issue_status "$issue_id" "$LINEAR_IN_REVIEW_STATUS_ID"
   add_linear_comment "$issue_id" \
     "🤖 PR opened automatically: ${pr_url} — auto-merge is enabled and will trigger once CI passes."
   ok "Linear updated → In Review"
+
+  # In Cowork mode, print the PR URL so Claude (the parent session) can capture it
+  # and update Linear via MCP
+  if [[ "$COWORK_MODE" == "true" ]]; then
+    echo "COWORK_PR_URL=${pr_url}"
+    echo "COWORK_PR_NUMBER=${pr_number}"
+  fi
 }
 
 # ---------------------------------------------------------------------------
 # Fallback: fix failing CI on open PRs
 # ---------------------------------------------------------------------------
-
-# Returns a JSON array of open PRs: [{number, title, head_ref, node_id}]
-get_open_prs() {
-  curl -sf \
-    -H "Authorization: Bearer $GH_TOKEN" \
-    -H "Accept: application/vnd.github+json" \
-    -H "X-GitHub-Api-Version: 2022-11-28" \
-    "$GITHUB_API_URL/repos/$GITHUB_REPO/pulls?state=open&per_page=50"
-}
-
-# Prints "failing" if the latest commit on $branch has any failed check runs,
-# "pending" if checks are still running, or "passing" otherwise.
-get_pr_ci_status() {
-  local branch="$1"
-  local sha
-  sha=$(curl -sf \
-    -H "Authorization: Bearer $GH_TOKEN" \
-    -H "Accept: application/vnd.github+json" \
-    "$GITHUB_API_URL/repos/$GITHUB_REPO/branches/$branch" \
-    | jq -r '.commit.sha' 2>/dev/null || true)
-
-  [[ -z "$sha" ]] && { echo "unknown"; return; }
-
-  local check_runs
-  check_runs=$(curl -sf \
-    -H "Authorization: Bearer $GH_TOKEN" \
-    -H "Accept: application/vnd.github+json" \
-    "$GITHUB_API_URL/repos/$GITHUB_REPO/commits/$sha/check-runs" \
-    | jq '.check_runs' 2>/dev/null || echo "[]")
-
-  local total failed in_progress
-  total=$(echo "$check_runs" | jq 'length')
-  failed=$(echo "$check_runs" | jq '[.[] | select(.conclusion == "failure" or .conclusion == "timed_out")] | length')
-  in_progress=$(echo "$check_runs" | jq '[.[] | select(.status == "in_progress" or .status == "queued")] | length')
-
-  if [[ "$total" -eq 0 ]]; then
-    echo "no_checks"
-  elif [[ "$failed" -gt 0 ]]; then
-    echo "failing"
-  elif [[ "$in_progress" -gt 0 ]]; then
-    echo "pending"
-  else
-    echo "passing"
-  fi
-}
-
-# Gets a summary of failing check names and their output for a branch
-get_failing_checks_summary() {
-  local branch="$1"
-  local sha
-  sha=$(curl -sf \
-    -H "Authorization: Bearer $GH_TOKEN" \
-    -H "Accept: application/vnd.github+json" \
-    "$GITHUB_API_URL/repos/$GITHUB_REPO/branches/$branch" \
-    | jq -r '.commit.sha' 2>/dev/null || true)
-
-  [[ -z "$sha" ]] && { echo "Could not resolve branch SHA"; return; }
-
-  curl -sf \
-    -H "Authorization: Bearer $GH_TOKEN" \
-    -H "Accept: application/vnd.github+json" \
-    "$GITHUB_API_URL/repos/$GITHUB_REPO/commits/$sha/check-runs" \
-    | jq -r '
-      .check_runs[]
-      | select(.conclusion == "failure" or .conclusion == "timed_out")
-      | "  Check: \(.name)\n  Conclusion: \(.conclusion)\n  Details: \(.output.summary // "(no summary)")\n"
-    ' 2>/dev/null || echo "(could not fetch check details)"
-}
-
-# Checks out a PR branch, runs Claude to fix CI errors, pushes
 fix_failing_pr() {
   local pr_number="$1"
   local pr_title="$2"
@@ -407,13 +444,11 @@ fix_failing_pr() {
   failures=$(get_failing_checks_summary "$branch")
   info "Failing checks:\n$failures"
 
-  # ── Check out the branch ──────────────────────────────────────────────────
   git -C "$REPO_PATH" fetch origin "$branch" --quiet
   git -C "$REPO_PATH" checkout "$branch" --quiet
   git -C "$REPO_PATH" reset --hard "origin/$branch" --quiet
   info "Checked out $branch"
 
-  # ── Build the fix prompt ──────────────────────────────────────────────────
   local prompt
   prompt=$(cat <<PROMPT
 You are fixing CI failures on a GitHub Pull Request in a TypeScript monorepo (Next.js · Convex · Better Auth).
@@ -458,7 +493,6 @@ PROMPT
   git -C "$REPO_PATH" checkout "$BASE_BRANCH" --quiet
 }
 
-# Scans all open PRs and tries to fix any with failing CI
 check_and_fix_open_prs() {
   log "No Backlog/Todo issues found — scanning open PRs for CI failures…"
 
@@ -473,15 +507,13 @@ check_and_fix_open_prs() {
 
   log "Found $pr_count open PR(s). Checking CI status…"
 
-  local fixed=0
-  local pending=0
-  local passing=0
+  local fixed=0 pending=0 passing=0
 
   for i in $(seq 0 $((pr_count - 1))); do
     local pr_number pr_title branch
     pr_number=$(echo "$prs_json" | jq -r ".[$i].number")
     pr_title=$(echo   "$prs_json" | jq -r ".[$i].title")
-    branch=$(echo     "$prs_json" | jq -r ".[$i].head.ref")
+    branch=$(echo     "$prs_json" | jq -r ".[$i].headRefName")
 
     local ci_status
     ci_status=$(get_pr_ci_status "$branch")
@@ -514,8 +546,31 @@ main() {
 
   log "═══════════════════════════════════════════"
   log " Linear Agent — $(date '+%Y-%m-%d %H:%M')"
+  log " Mode: $( [[ "$COWORK_MODE" == "true" ]] && echo "Cowork (single issue)" || echo "Standalone (full poll)" )"
   log "═══════════════════════════════════════════"
   log "Repo: $REPO_PATH"
+
+  # ── Cowork mode: implement the single issue passed in via env vars ────────
+  if [[ "$COWORK_MODE" == "true" ]]; then
+    local id="${ISSUE_LINEAR_ID:-}"
+    local identifier="${ISSUE_IDENTIFIER}"
+    local title="${ISSUE_TITLE:-}"
+    local description="${ISSUE_DESCRIPTION:-}"
+
+    if [[ -z "$title" ]]; then
+      err "ISSUE_TITLE is required in Cowork mode"
+      exit 1
+    fi
+
+    process_issue "$id" "$identifier" "$title" "$description"
+
+    log "═══════════════════════════════════════════"
+    log " Done"
+    log "═══════════════════════════════════════════"
+    return
+  fi
+
+  # ── Standalone mode: query Linear API, pick one issue, implement it ───────
   log "Fetching Backlog + Todo issues from Linear…"
 
   local issues_json count
@@ -527,18 +582,14 @@ main() {
   if [[ "$count" -eq 0 ]]; then
     check_and_fix_open_prs
   else
-    for i in $(seq 0 $((count - 1))); do
-      local id identifier title description
-      id=$(echo          "$issues_json" | jq -r ".data.issues.nodes[$i].id")
-      identifier=$(echo  "$issues_json" | jq -r ".data.issues.nodes[$i].identifier")
-      title=$(echo       "$issues_json" | jq -r ".data.issues.nodes[$i].title")
-      description=$(echo "$issues_json" | jq -r ".data.issues.nodes[$i].description // \"\"")
+    # Process only the first issue per run (avoid git conflicts; re-run for more)
+    local id identifier title description
+    id=$(echo          "$issues_json" | jq -r ".data.issues.nodes[0].id")
+    identifier=$(echo  "$issues_json" | jq -r ".data.issues.nodes[0].identifier")
+    title=$(echo       "$issues_json" | jq -r ".data.issues.nodes[0].title")
+    description=$(echo "$issues_json" | jq -r ".data.issues.nodes[0].description // \"\"")
 
-      process_issue "$id" "$identifier" "$title" "$description" || true
-
-      # Brief pause between issues so git operations don't race
-      [[ $i -lt $((count - 1)) ]] && sleep 3
-    done
+    process_issue "$id" "$identifier" "$title" "$description"
   fi
 
   log "═══════════════════════════════════════════"

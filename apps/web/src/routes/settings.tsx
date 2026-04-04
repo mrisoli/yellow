@@ -20,6 +20,7 @@ import {
 import { useState } from "react";
 import SignInForm from "@/components/sign-in-form";
 import SignUpForm from "@/components/sign-up-form";
+import StripeConnection from "@/components/stripe-connection";
 import { authClient } from "@/lib/auth-client";
 
 export const Route = createFileRoute("/settings")({
@@ -94,6 +95,9 @@ function RouteComponent() {
                 </Button>
               </CardContent>
             </Card>
+
+            {/* Stripe Payment Section */}
+            <StripeConnection />
 
             {/* Appearance Section */}
             <Card>

@@ -15,6 +15,8 @@
   "dependencies": {
     "@convex-dev/better-auth": "catalog:",
     "@hookform/resolvers": "^5.1.1",
+    "@stripe/react-stripe-js": "catalog:",
+    "@stripe/stripe-js": "catalog:",
     "@tailwindcss/vite": "^4.1.18",
     "@tanstack/react-form": "^1.28.0",
     "@tanstack/react-router": "^1.141.1",
@@ -29,6 +31,7 @@
     "react": "catalog:",
     "react-dom": "catalog:",
     "sonner": "catalog:",
+    "stripe": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {

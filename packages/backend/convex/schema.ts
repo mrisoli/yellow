@@ -6,14 +6,71 @@ export default defineSchema({
     userId: v.string(),
     schedule: v.array(
       v.object({
-        dayOfWeek: v.number(), // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+        dayOfWeek: v.number(),
         enabled: v.boolean(),
         timeRanges: v.array(
           v.object({
-            startTime: v.string(), // "HH:mm" 24-hour format
-            endTime: v.string(), // "HH:mm" 24-hour format
+            startTime: v.string(),
+            endTime: v.string(),
           })
         ),
+      })
+    ),
+  }).index("by_userId", ["userId"]),
+
+  bookings: defineTable({
+    organizerUserId: v.string(),
+    attendeeName: v.string(),
+    attendeeEmail: v.string(),
+    attendeePhone: v.optional(v.string()),
+    date: v.string(),
+    time: v.string(),
+    durationMinutes: v.number(),
+    status: v.union(
+      v.literal("confirmed"),
+      v.literal("cancelled"),
+      v.literal("completed")
+    ),
+    confirmationSent: v.boolean(),
+    reminderSent: v.boolean(),
+    followUpSent: v.boolean(),
+    meetingStartsAt: v.number(),
+  })
+    .index("by_organizer", ["organizerUserId"])
+    .index("by_meetingStartsAt", ["meetingStartsAt"]),
+
+  notificationSettings: defineTable({
+    userId: v.string(),
+    emailConfirmationEnabled: v.boolean(),
+    reminderEnabled: v.boolean(),
+    reminderHoursBefore: v.number(),
+    smsReminderEnabled: v.boolean(),
+    followUpEnabled: v.boolean(),
+    followUpHoursAfter: v.number(),
+    confirmationSubject: v.optional(v.string()),
+    confirmationBody: v.optional(v.string()),
+    reminderSubject: v.optional(v.string()),
+    reminderBody: v.optional(v.string()),
+    followUpSubject: v.optional(v.string()),
+    followUpBody: v.optional(v.string()),
+    smsReminderTemplate: v.optional(v.string()),
+  }).index("by_userId", ["userId"]),
+
+  salesforceIntegrations: defineTable({
+    userId: v.string(),
+    orgId: v.string(),
+    instanceUrl: v.string(),
+    accessToken: v.string(),
+    refreshToken: v.string(),
+    connectedAt: v.number(),
+    fieldMappings: v.optional(
+      v.object({
+        attendeeName: v.optional(v.string()),
+        attendeeEmail: v.optional(v.string()),
+        attendeePhone: v.optional(v.string()),
+        meetingType: v.optional(v.string()),
+        meetingDate: v.optional(v.string()),
+        meetingTime: v.optional(v.string()),
       })
     ),
   }).index("by_userId", ["userId"]),

@@ -13,6 +13,9 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
+      "@yellow/backend/*": ["../../packages/backend/*"],
+      "@yellow/booking-widget": ["../../packages/booking-widget/src/index.ts"],
+      "@yellow/booking-widget/*": ["../../packages/booking-widget/src/*"],
       "@yellow/ui/*": ["../../packages/ui/src/*"]
     }
   }

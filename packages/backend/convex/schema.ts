@@ -17,4 +17,14 @@ export default defineSchema({
       })
     ),
   }).index("by_userId", ["userId"]),
+
+  userProfiles: defineTable({
+    userId: v.string(),
+    slug: v.string(),
+    previousSlug: v.optional(v.string()),
+    slugChangedAt: v.optional(v.number()),
+  })
+    .index("by_userId", ["userId"])
+    .index("by_slug", ["slug"])
+    .index("by_previousSlug", ["previousSlug"]),
 });

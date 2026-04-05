@@ -15,6 +15,7 @@ import {
   Authenticated,
   AuthLoading,
   Unauthenticated,
+  useMutation,
   useQuery,
 } from "convex/react";
 import { useState } from "react";
@@ -25,6 +26,168 @@ import { authClient } from "@/lib/auth-client";
 export const Route = createFileRoute("/settings")({
   component: RouteComponent,
 });
+
+function BookingUrlSection() {
+  const profile = useQuery(api.userProfiles.getUserProfile);
+  const setSlugMutation = useMutation(api.userProfiles.setUserSlug);
+
+  const [slugInput, setSlugInput] = useState<string>("");
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+
+  const currentSlug = profile?.slug ?? null;
+  const publicUrl = currentSlug
+    ? `${window.location.origin.replace(":5173", ":5174")}/${currentSlug}`
+    : null;
+
+  const handleEdit = () => {
+    setSlugInput(currentSlug ?? "");
+    setError(null);
+    setSuccess(false);
+    setIsEditing(true);
+  };
+
+  const handleCancel = () => {
+    setIsEditing(false);
+    setError(null);
+  };
+
+  const handleSave = async () => {
+    const trimmed = slugInput.trim().toLowerCase();
+    if (!trimmed) {
+      setError("Slug cannot be empty");
+      return;
+    }
+
+    setSaving(true);
+    setError(null);
+    setSuccess(false);
+
+    try {
+      await setSlugMutation({ slug: trimmed });
+      setSuccess(true);
+      setIsEditing(false);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to save slug");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (profile === undefined) {
+    return (
+      <Card>
+        <CardHeader>
+          <Skeleton className="h-6 w-32" />
+          <Skeleton className="mt-2 h-4 w-48" />
+        </CardHeader>
+        <CardContent>
+          <Skeleton className="h-10 w-full" />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Booking URL</CardTitle>
+        <CardDescription>
+          Customize your personal booking link. Share this URL so clients can
+          book time with you.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {!isEditing ? (
+          <>
+            {currentSlug ? (
+              <div className="space-y-2">
+                <Label>Your booking URL</Label>
+                <div className="flex items-center gap-2">
+                  <code className="flex-1 rounded bg-muted px-3 py-2 font-mono text-sm break-all">
+                    {publicUrl}
+                  </code>
+                  <Button
+                    onClick={() => {
+                      if (publicUrl) {
+                        navigator.clipboard.writeText(publicUrl);
+                      }
+                    }}
+                    size="sm"
+                    variant="outline"
+                    type="button"
+                  >
+                    Copy
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <p className="text-muted-foreground text-sm">
+                You haven't set a custom booking URL yet.
+              </p>
+            )}
+            {success && (
+              <p className="text-green-600 text-sm">
+                Booking URL saved successfully!
+              </p>
+            )}
+            <Button onClick={handleEdit} variant="outline" type="button">
+              {currentSlug ? "Change URL slug" : "Set booking URL slug"}
+            </Button>
+          </>
+        ) : (
+          <div className="space-y-3">
+            <div className="space-y-2">
+              <Label htmlFor="slug">URL slug</Label>
+              <div className="flex items-center gap-2">
+                <span className="text-muted-foreground text-sm whitespace-nowrap">
+                  yellow.app/
+                </span>
+                <Input
+                  id="slug"
+                  value={slugInput}
+                  onChange={(e) => {
+                    setSlugInput(e.target.value.toLowerCase());
+                    setError(null);
+                  }}
+                  placeholder="your-name"
+                  maxLength={30}
+                  pattern="[a-z0-9-]+"
+                  autoFocus
+                />
+              </div>
+              <p className="text-muted-foreground text-xs">
+                2–30 characters. Lowercase letters, numbers, and hyphens only.
+              </p>
+            </div>
+
+            {error && <p className="text-destructive text-sm">{error}</p>}
+
+            <div className="flex gap-2">
+              <Button
+                disabled={saving}
+                onClick={handleSave}
+                type="button"
+              >
+                {saving ? "Saving…" : "Save"}
+              </Button>
+              <Button
+                disabled={saving}
+                onClick={handleCancel}
+                variant="ghost"
+                type="button"
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
 
 function RouteComponent() {
   const navigate = useNavigate();
@@ -94,6 +257,9 @@ function RouteComponent() {
                 </Button>
               </CardContent>
             </Card>
+
+            {/* Booking URL Section */}
+            <BookingUrlSection />
 
             {/* Appearance Section */}
             <Card>

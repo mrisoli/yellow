@@ -15,12 +15,11 @@ import {
   useQuery,
 } from "convex/react";
 import { useState } from "react";
-
+import EventTypeForm from "@/components/event-type-form";
+import EventTypesList from "@/components/event-types-list";
 import SignInForm from "@/components/sign-in-form";
 import SignUpForm from "@/components/sign-up-form";
 import UserMenu from "@/components/user-menu";
-import EventTypeForm from "@/components/event-type-form";
-import EventTypesList from "@/components/event-types-list";
 
 export const Route = createFileRoute("/dashboard")({
   component: RouteComponent,

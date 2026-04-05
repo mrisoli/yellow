@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { api } from "@yellow/backend/convex/_generated/api";
 import { Button } from "@yellow/ui/components/button";
 import {
   Card,
@@ -12,7 +12,7 @@ import {
 import { Input } from "@yellow/ui/components/input";
 import { Label } from "@yellow/ui/components/label";
 import { useMutation, useQuery } from "convex/react";
-import { api } from "@yellow/backend/convex/_generated/api";
+import { useState } from "react";
 import { toast } from "sonner";
 
 interface StripeConnectionProps {
@@ -33,7 +33,7 @@ export default function StripeConnection({
   const handleConnect = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!stripeAccountId.trim() || !publishableKey.trim()) {
+    if (!(stripeAccountId.trim() && publishableKey.trim())) {
       toast.error("Please fill in all fields");
       return;
     }
@@ -77,22 +77,16 @@ export default function StripeConnection({
       <Card>
         <CardHeader>
           <CardTitle>Stripe Account</CardTitle>
-          <CardDescription>
-            Your Stripe account is connected
-          </CardDescription>
+          <CardDescription>Your Stripe account is connected</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <Label>Account ID</Label>
-            <Input
-              disabled
-              type="text"
-              value={stripeAccount.stripeAccountId}
-            />
+            <Input disabled type="text" value={stripeAccount.stripeAccountId} />
           </div>
           <Button
-            onClick={handleDisconnect}
             disabled={isLoading}
+            onClick={handleDisconnect}
             variant="destructive"
           >
             {isLoading ? "Disconnecting..." : "Disconnect Stripe"}
@@ -115,28 +109,28 @@ export default function StripeConnection({
           <div className="space-y-2">
             <Label htmlFor="stripe-account-id">Stripe Account ID</Label>
             <Input
+              disabled={isLoading}
               id="stripe-account-id"
+              onChange={(e) => setStripeAccountId(e.target.value)}
               placeholder="acct_..."
               type="text"
               value={stripeAccountId}
-              onChange={(e) => setStripeAccountId(e.target.value)}
-              disabled={isLoading}
             />
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="stripe-key">Publishable Key</Label>
             <Input
+              disabled={isLoading}
               id="stripe-key"
+              onChange={(e) => setPublishableKey(e.target.value)}
               placeholder="pk_live_... or pk_test_..."
               type="password"
               value={publishableKey}
-              onChange={(e) => setPublishableKey(e.target.value)}
-              disabled={isLoading}
             />
           </div>
 
-          <Button type="submit" disabled={isLoading}>
+          <Button disabled={isLoading} type="submit">
             {isLoading ? "Connecting..." : "Connect Stripe"}
           </Button>
         </form>

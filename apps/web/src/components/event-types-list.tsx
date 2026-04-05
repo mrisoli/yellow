@@ -1,9 +1,14 @@
 "use client";
 
-import { Button } from "@yellow/ui/components/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@yellow/ui/components/card";
-import { useQuery } from "convex/react";
 import { api } from "@yellow/backend/convex/_generated/api";
+import { Button } from "@yellow/ui/components/button";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@yellow/ui/components/card";
+import { useQuery } from "convex/react";
 
 export default function EventTypesList() {
   const eventTypes = useQuery(api.eventTypes.getEventTypes);
@@ -36,8 +41,8 @@ export default function EventTypesList() {
         <div className="space-y-4">
           {eventTypes.map((eventType) => (
             <div
-              key={eventType._id}
               className="border-foreground/10 border-b pb-4 last:border-0"
+              key={eventType._id}
             >
               <div className="mb-2 flex items-start justify-between">
                 <div>
@@ -48,20 +53,16 @@ export default function EventTypesList() {
                     </p>
                   )}
                 </div>
-                <Button variant="outline" size="sm">
+                <Button size="sm" variant="outline">
                   Edit
                 </Button>
               </div>
-              <div className="flex gap-4 text-sm text-muted-foreground">
+              <div className="flex gap-4 text-muted-foreground text-sm">
                 <span>{eventType.durationMinutes} minutes</span>
                 {eventType.isPaymentRequired && (
-                  <span>
-                    ${eventType.paymentAmount?.toFixed(2)} required
-                  </span>
+                  <span>${eventType.paymentAmount?.toFixed(2)} required</span>
                 )}
-                {!eventType.isPaymentRequired && (
-                  <span>Payment optional</span>
-                )}
+                {!eventType.isPaymentRequired && <span>Payment optional</span>}
               </div>
             </div>
           ))}

@@ -1,5 +1,5 @@
-import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import { mutation, query } from "./_generated/server";
 import { authComponent } from "./auth";
 
 export const getEventTypes = query({
@@ -91,16 +91,24 @@ export const updateEventType = mutation({
       updatedAt: Date.now(),
     };
 
-    if (args.name !== undefined) updateData.name = args.name;
-    if (args.description !== undefined) updateData.description = args.description;
-    if (args.durationMinutes !== undefined)
+    if (args.name !== undefined) {
+      updateData.name = args.name;
+    }
+    if (args.description !== undefined) {
+      updateData.description = args.description;
+    }
+    if (args.durationMinutes !== undefined) {
       updateData.durationMinutes = args.durationMinutes;
-    if (args.isPaymentRequired !== undefined)
+    }
+    if (args.isPaymentRequired !== undefined) {
       updateData.isPaymentRequired = args.isPaymentRequired;
-    if (args.paymentAmount !== undefined)
+    }
+    if (args.paymentAmount !== undefined) {
       updateData.paymentAmount = args.paymentAmount;
-    if (args.paymentCurrency !== undefined)
+    }
+    if (args.paymentCurrency !== undefined) {
       updateData.paymentCurrency = args.paymentCurrency;
+    }
 
     await ctx.db.patch(eventType._id, updateData);
     return eventType._id;

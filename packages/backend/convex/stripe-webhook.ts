@@ -1,6 +1,6 @@
+import type Stripe from "stripe";
 import { httpAction } from "./_generated/server";
 import { stripe } from "./stripe";
-import Stripe from "stripe";
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 

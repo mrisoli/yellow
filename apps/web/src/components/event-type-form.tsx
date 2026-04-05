@@ -1,12 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { api } from "@yellow/backend/convex/_generated/api";
 import { Button } from "@yellow/ui/components/button";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@yellow/ui/components/card";
 import { Input } from "@yellow/ui/components/input";
 import { Label } from "@yellow/ui/components/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@yellow/ui/components/card";
 import { useMutation } from "convex/react";
-import { api } from "@yellow/backend/convex/_generated/api";
+import { useState } from "react";
 import { toast } from "sonner";
 
 interface EventTypeFormProps {
@@ -23,42 +28,67 @@ export default function EventTypeForm({ onSuccess }: EventTypeFormProps) {
 
   const createEventType = useMutation(api.eventTypes.createEventType);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
+  const validateFormData = (): boolean => {
     if (!name.trim()) {
       toast.error("Event type name is required");
-      return;
+      return false;
     }
 
     if (isPaymentRequired && !paymentAmount.trim()) {
       toast.error("Payment amount is required when payment is enabled");
+      return false;
+    }
+
+    return true;
+  };
+
+  const getPaymentAmount = (): number | undefined => {
+    if (!isPaymentRequired) {
+      return undefined;
+    }
+
+    const amount = Number.parseFloat(paymentAmount);
+    if (Number.isNaN(amount) || amount <= 0) {
+      toast.error("Payment amount must be a valid positive number");
+      return undefined;
+    }
+
+    return amount;
+  };
+
+  const resetForm = () => {
+    setName("");
+    setDescription("");
+    setDurationMinutes("30");
+    setIsPaymentRequired(false);
+    setPaymentAmount("");
+  };
+
+  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    if (!validateFormData()) {
+      return;
+    }
+
+    const amount = getPaymentAmount();
+    if (isPaymentRequired && amount === undefined) {
       return;
     }
 
     setIsLoading(true);
     try {
-      const amount = isPaymentRequired ? parseFloat(paymentAmount) : undefined;
-      if (isPaymentRequired && (isNaN(amount || 0) || (amount || 0) <= 0)) {
-        toast.error("Payment amount must be a valid positive number");
-        return;
-      }
-
       await createEventType({
         name,
         description: description || undefined,
-        durationMinutes: parseInt(durationMinutes) || 30,
+        durationMinutes: Number.parseInt(durationMinutes, 10) || 30,
         isPaymentRequired,
         paymentAmount: amount,
         paymentCurrency: "usd",
       });
 
       toast.success("Event type created successfully!");
-      setName("");
-      setDescription("");
-      setDurationMinutes("30");
-      setIsPaymentRequired(false);
-      setPaymentAmount("");
+      resetForm();
       onSuccess?.();
     } catch (error) {
       const errorMessage =
@@ -79,48 +109,48 @@ export default function EventTypeForm({ onSuccess }: EventTypeFormProps) {
           <div className="space-y-2">
             <Label htmlFor="event-name">Event Name</Label>
             <Input
+              disabled={isLoading}
               id="event-name"
+              onChange={(e) => setName(e.target.value)}
               placeholder="e.g., Consultation"
               type="text"
               value={name}
-              onChange={(e) => setName(e.target.value)}
-              disabled={isLoading}
             />
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="event-description">Description</Label>
             <Input
+              disabled={isLoading}
               id="event-description"
+              onChange={(e) => setDescription(e.target.value)}
               placeholder="Describe the event"
               type="text"
               value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              disabled={isLoading}
             />
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="event-duration">Duration (minutes)</Label>
             <Input
+              disabled={isLoading}
               id="event-duration"
+              min="15"
+              onChange={(e) => setDurationMinutes(e.target.value)}
               placeholder="30"
               type="number"
-              min="15"
               value={durationMinutes}
-              onChange={(e) => setDurationMinutes(e.target.value)}
-              disabled={isLoading}
             />
           </div>
 
           <div className="space-y-2">
             <label className="flex items-center space-x-2">
               <input
-                type="checkbox"
                 checked={isPaymentRequired}
-                onChange={(e) => setIsPaymentRequired(e.target.checked)}
-                disabled={isLoading}
                 className="h-4 w-4 rounded"
+                disabled={isLoading}
+                onChange={(e) => setIsPaymentRequired(e.target.checked)}
+                type="checkbox"
               />
               <span className="text-sm">Require payment for this event</span>
             </label>
@@ -130,19 +160,19 @@ export default function EventTypeForm({ onSuccess }: EventTypeFormProps) {
             <div className="space-y-2">
               <Label htmlFor="payment-amount">Payment Amount (USD)</Label>
               <Input
-                id="payment-amount"
-                placeholder="99.99"
-                type="number"
-                min="0"
-                step="0.01"
-                value={paymentAmount}
-                onChange={(e) => setPaymentAmount(e.target.value)}
                 disabled={isLoading}
+                id="payment-amount"
+                min="0"
+                onChange={(e) => setPaymentAmount(e.target.value)}
+                placeholder="99.99"
+                step="0.01"
+                type="number"
+                value={paymentAmount}
               />
             </div>
           )}
 
-          <Button type="submit" disabled={isLoading}>
+          <Button disabled={isLoading} type="submit">
             {isLoading ? "Creating..." : "Create Event Type"}
           </Button>
         </form>

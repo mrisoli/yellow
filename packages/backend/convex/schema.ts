@@ -66,12 +66,12 @@ export default defineSchema({
     userId: v.string(),
     schedule: v.array(
       v.object({
-        dayOfWeek: v.number(),
+        dayOfWeek: v.number(), // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
         enabled: v.boolean(),
         timeRanges: v.array(
           v.object({
-            startTime: v.string(),
-            endTime: v.string(),
+            startTime: v.string(), // "HH:mm" 24-hour format
+            endTime: v.string(), // "HH:mm" 24-hour format
           })
         ),
       })

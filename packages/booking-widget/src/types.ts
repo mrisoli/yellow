@@ -10,5 +10,7 @@ export interface BookingWidgetProps {
   defaultDate?: Date;
   defaultMonth?: Date;
   meetingDuration?: number;
+  organizerUserId?: string;
+  showPhoneField?: boolean;
   submitUrl?: string;
 }

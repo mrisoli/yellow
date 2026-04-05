@@ -31,5 +31,27 @@ export interface BookingWidgetProps {
   defaultDate?: Date;
   defaultMonth?: Date;
   meetingDuration?: number;
+  /** The organizer's user ID — sent with every booking request. */
+  organizerUserId?: string;
+  /**
+   * The base URL for the Convex HTTP endpoint.
+   * Defaults to http://localhost:3000.
+   * Used to construct: {siteUrl}/bookings and {siteUrl}/paypal/orders
+   */
   submitUrl?: string;
+
+  // ── Payment options ──────────────────────────────────────────────────────
+
+  /**
+   * When set, the widget requires payment before confirming a booking.
+   * Value is in cents (e.g. 5000 = $50.00).
+   */
+  paymentAmount?: number;
+  /** ISO 4217 currency code (default: "USD"). */
+  paymentCurrency?: string;
+  /**
+   * The PayPal client ID for the JS SDK.
+   * Required when paymentAmount > 0 and the host uses PayPal.
+   */
+  paypalClientId?: string;
 }

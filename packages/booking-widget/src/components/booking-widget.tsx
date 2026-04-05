@@ -14,6 +14,7 @@ export function BookingWidget({
   availability,
   blockedTimes,
   submitUrl = "http://localhost:3000/bookings",
+  smsRemindersEnabled = false,
   className,
 }: BookingWidgetProps) {
   const [step, setStep] = useState<Step>("calendar");
@@ -105,6 +106,7 @@ export function BookingWidget({
           <EmailForm
             date={formatDate(selectedDate)}
             onSuccess={handleSuccess}
+            smsRemindersEnabled={smsRemindersEnabled}
             submitUrl={submitUrl}
             time={selectedTime}
           />

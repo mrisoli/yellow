@@ -6,6 +6,7 @@ interface EmailFormProps {
   date: string;
   onSuccess?: () => void;
   submitUrl: string;
+  smsRemindersEnabled?: boolean;
   time: string;
 }
 
@@ -14,9 +15,11 @@ export function EmailForm({
   time,
   submitUrl,
   onSuccess,
+  smsRemindersEnabled,
   className,
 }: EmailFormProps) {
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -33,6 +36,7 @@ export function EmailForm({
         },
         body: JSON.stringify({
           email,
+          phone: smsRemindersEnabled ? phone : undefined,
           date,
           time,
         }),
@@ -44,12 +48,15 @@ export function EmailForm({
 
       onSuccess?.();
       setEmail("");
+      setPhone("");
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
       setIsLoading(false);
     }
   };
+
+  const isFormValid = email && (!smsRemindersEnabled || phone);
 
   return (
     <form className={cn("space-y-4", className)} onSubmit={handleSubmit}>
@@ -71,6 +78,29 @@ export function EmailForm({
         />
       </div>
 
+      {smsRemindersEnabled && (
+        <div>
+          <label
+            className="block font-medium text-gray-700 text-sm"
+            htmlFor="phone"
+          >
+            Phone Number
+          </label>
+          <input
+            className="mt-1 block w-full rounded border border-gray-300 px-3 py-2 text-sm"
+            id="phone"
+            onChange={(e) => setPhone(e.target.value)}
+            placeholder="+1 (555) 000-0000"
+            required={smsRemindersEnabled}
+            type="tel"
+            value={phone}
+          />
+          <p className="mt-1 text-gray-500 text-xs">
+            We'll send you SMS reminders before your appointment.
+          </p>
+        </div>
+      )}
+
       {error && (
         <div className="rounded bg-red-50 p-3 text-red-700 text-sm">
           {error}
@@ -80,11 +110,11 @@ export function EmailForm({
       <button
         className={cn(
           "w-full rounded px-4 py-2 font-medium text-white transition",
-          isLoading || !email
+          isLoading || !isFormValid
             ? "cursor-not-allowed bg-blue-300"
             : "bg-blue-500 hover:bg-blue-600"
         )}
-        disabled={isLoading || !email}
+        disabled={isLoading || !isFormValid}
         type="submit"
       >
         {isLoading ? "Submitting..." : "Confirm Booking"}

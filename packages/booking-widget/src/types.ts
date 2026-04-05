@@ -32,4 +32,6 @@ export interface BookingWidgetProps {
   defaultMonth?: Date;
   meetingDuration?: number;
   submitUrl?: string;
+  /** Whether SMS reminders are enabled for this event type */
+  smsRemindersEnabled?: boolean;
 }

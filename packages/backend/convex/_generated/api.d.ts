@@ -10,8 +10,11 @@
 
 import type * as auth from "../auth.js";
 import type * as availability from "../availability.js";
+import type * as bookings from "../bookings.js";
+import type * as crons from "../crons.js";
 import type * as healthCheck from "../healthCheck.js";
 import type * as http from "../http.js";
+import type * as notifications from "../notifications.js";
 import type * as privateData from "../privateData.js";
 
 import type {
@@ -23,8 +26,11 @@ import type {
 declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   availability: typeof availability;
+  bookings: typeof bookings;
+  crons: typeof crons;
   healthCheck: typeof healthCheck;
   http: typeof http;
+  notifications: typeof notifications;
   privateData: typeof privateData;
 }>;
 

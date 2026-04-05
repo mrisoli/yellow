@@ -123,7 +123,7 @@ function AuthenticatedDashboard({ user }: AuthenticatedDashboardProps) {
           <h2 className="mb-4 font-semibold text-foreground text-lg">
             Quick Actions
           </h2>
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-3">
             <Button
               className="h-auto flex-col items-start justify-start px-4 py-4"
               variant="outline"
@@ -140,6 +140,15 @@ function AuthenticatedDashboard({ user }: AuthenticatedDashboardProps) {
               <span className="font-semibold">View Calendar</span>
               <span className="text-muted-foreground text-xs">
                 See all your appointments
+              </span>
+            </Button>
+            <Button
+              className="h-auto flex-col items-start justify-start px-4 py-4"
+              variant="outline"
+            >
+              <span className="font-semibold">View Analytics</span>
+              <span className="text-muted-foreground text-xs">
+                Track booking trends and insights
               </span>
             </Button>
           </div>

@@ -15,7 +15,8 @@ import {
   useQuery,
 } from "convex/react";
 import { useState } from "react";
-
+import EventTypeForm from "@/components/event-type-form";
+import EventTypesList from "@/components/event-types-list";
 import SignInForm from "@/components/sign-in-form";
 import SignUpForm from "@/components/sign-up-form";
 import UserMenu from "@/components/user-menu";
@@ -116,6 +117,17 @@ function AuthenticatedDashboard({ user }: AuthenticatedDashboardProps) {
               </div>
             </CardContent>
           </Card>
+        </div>
+
+        {/* Event Types Section */}
+        <div className="mb-8">
+          <h2 className="mb-4 font-semibold text-foreground text-lg">
+            Event Types
+          </h2>
+          <div className="grid gap-6 lg:grid-cols-2">
+            <EventTypeForm />
+            <EventTypesList />
+          </div>
         </div>
 
         {/* Quick Actions Section */}
